@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan_raii.hpp>
+#include <vulkan/vulkan.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -19,6 +19,7 @@ class Window
 	Window &operator=(const Window &) = delete;
 
 	bool shouldClose();
+	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
   private:
 	GLFWwindow    *window;
