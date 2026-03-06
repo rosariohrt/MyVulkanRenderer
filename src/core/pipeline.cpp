@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include <vulkan/vulkan_core.h>
 
 namespace mvr
 {
