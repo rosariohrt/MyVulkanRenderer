@@ -51,7 +51,8 @@ void DestroyDebugUtilsMessengerEXT(
 }
 
 // class member functions
-VulkanDevice::VulkanDevice(Window &window) : window{window}
+VulkanDevice::VulkanDevice(Window &window) :
+    window{window}
 {
 	createInstance();
 	setupDebugMessenger();
@@ -91,6 +92,10 @@ void VulkanDevice::createInstance()
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType                = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo     = &appInfo;
+
+#if __APPLE__
+	createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
 
 	auto extensions                    = getRequiredExtensions();
 	createInfo.enabledExtensionCount   = static_cast<uint32_t>(extensions.size());
@@ -289,6 +294,11 @@ std::vector<const char *> VulkanDevice::getRequiredExtensions()
 	if (enableValidationLayers) {
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
+
+#if __APPLE__
+	extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+	extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+#endif
 
 	return extensions;
 }

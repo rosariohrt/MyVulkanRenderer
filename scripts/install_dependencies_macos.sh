@@ -15,17 +15,20 @@ brew install glfw glm
 echo "Installing model and data loaders..."
 brew install tinyobjloader tinygltf nlohmann-json
 
-echo "Installing Vulkan SDK (includes MoltenVK for macOS)..."
-brew install --cask vulkan-sdk
-
 echo "Setting up compiler tools..."
 xcode-select --install 2>/dev/null || echo "Compiler tools already present."
 
 echo ""
-echo "IMPORTANT: Add these lines to your ~/.zshrc to make it IDE-agnostic:"
-echo 'export VULKAN_SDK=/usr/local/share/vulkan/explicit_layer.d'
-echo 'export PATH="/usr/local/bin:$PATH"'
+echo "============================================================"
+echo "IMPORTANT: Vulkan SDK for macOS must be installed manually."
+echo "============================================================"
+echo "1. Download the macOS installer from https://vulkan.lunarg.com/sdk/home"
+echo "2. Run the installer (.dmg) and follow the prompts."
+echo "3. Move the installed SDK folder to a convenient location and rename it accordingly."
+echo "   For example: mv ~/VulkanSDK/<version> ~/dev/tools/vulkansdk"
+echo "4. Add the setup script to your ~/.zshrc:"
+echo "   echo 'source ~/dev/tools/vulkansdk/setup-env.sh' >> ~/.zshrc"
 echo ""
-echo "To build from any terminal (including VSCode terminal):"
+echo "After configuring your terminal, you can build the project:"
 echo "cmake -B build -S . -G Ninja"
 echo "cmake --build build"
