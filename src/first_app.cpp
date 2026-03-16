@@ -1,6 +1,8 @@
 #include "first_app.h"
 
 // std
+#include <array>
+#include <cstdint>
 #include <stdexcept>
 
 namespace mvr
@@ -22,6 +24,7 @@ void FirstApp::run()
 {
 	while (!window.shouldClose()) {
 		glfwPollEvents();
+		drawFrame();
 	}
 }
 
@@ -52,10 +55,64 @@ void FirstApp::createPipeline()
 
 void FirstApp::createCommandBuffers()
 {
+	commandBuffers.resize(swapChain.imageCount());
+
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool        = device.getCommandPool();
+	allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+
+	if (vkAllocateCommandBuffers(device.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+		throw std::runtime_error("failed to allocate command buffers!");
+	}
+
+	for (int i = 0; i < commandBuffers.size(); i++) {
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+		if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
+			throw std::runtime_error("failed to begin recording command buffer!");
+		}
+
+		VkRenderPassBeginInfo remderPassInfo{};
+		remderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		remderPassInfo.renderPass        = swapChain.getRenderPass();
+		remderPassInfo.framebuffer       = swapChain.getFrameBuffer(i);
+		remderPassInfo.renderArea.offset = {0, 0};
+		remderPassInfo.renderArea.extent = swapChain.getSwapChainExtent();
+
+		std::array<VkClearValue, 2> clearValues{};
+		clearValues[0].color           = {0.1f, 0.1f, 0.1f, 1.0f};
+		clearValues[1].depthStencil    = {1.0f, 0};
+		remderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		remderPassInfo.pClearValues    = clearValues.data();
+
+		vkCmdBeginRenderPass(commandBuffers[i], &remderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		pipeline->bind(commandBuffers[i]);
+		vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+
+		vkCmdEndRenderPass(commandBuffers[i]);
+		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to end recording command buffer!");
+		}
+	}
 }
 
 void FirstApp::drawFrame()
 {
+	uint32_t imageIndex;
+	auto     result = swapChain.acquireNextImage(&imageIndex);
+
+	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		throw std::runtime_error("failed to acquire swap chain image!");
+	}
+
+	result = swapChain.submitCommandBuffers(&commandBuffers[imageIndex], &imageIndex);
+	if (result != VK_SUCCESS) {
+		throw std::runtime_error("failed to submit command buffer!");
+	}
 }
 
 }        // namespace mvr
