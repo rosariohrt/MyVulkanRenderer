@@ -4,6 +4,7 @@
 #include "core/swap_chain.h"
 #include "core/vulkan_device.h"
 #include "core/window.h"
+#include "scene/model.h"
 
 // std
 #include <memory>
@@ -33,7 +34,9 @@ class FirstApp
 	std::unique_ptr<Pipeline>    pipeline;
 	VkPipelineLayout             pipelineLayout;
 	std::vector<VkCommandBuffer> commandBuffers;
+	std::unique_ptr<Model>       model;
 
+	void loadModel();
 	void createPipelineLayout();
 	void createPipeline();
 	void createCommandBuffers();
