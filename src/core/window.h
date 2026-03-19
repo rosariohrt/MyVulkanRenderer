@@ -1,9 +1,11 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#define GLFW_INCLUDE_NONE
+#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
+#include <vulkan/vulkan_raii.hpp>
+
 #include <GLFW/glfw3.h>
 
+// std
 #include <string>
 
 namespace mvr
