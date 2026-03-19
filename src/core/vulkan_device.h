@@ -2,8 +2,7 @@
 
 #include "window.h"
 
-// std lib headers
-#include <string>
+// std
 #include <vector>
 
 namespace mvr
@@ -112,7 +111,7 @@ class VulkanDevice
 	bool                      checkValidationLayerSupport();
 	QueueFamilyIndices        findQueueFamilies(VkPhysicalDevice device);
 	void                      populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-	void                      hasGflwRequiredInstanceExtensions();
+	void                      hasGlfwRequiredInstanceExtensions();
 	bool                      checkDeviceExtensionSupport(VkPhysicalDevice device);
 	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
 

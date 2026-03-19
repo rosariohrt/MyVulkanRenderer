@@ -1,11 +1,10 @@
 #include "vulkan_device.h"
 
 // std headers
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <set>
-#include <unordered_set>
-#include <vulkan/vulkan.hpp>
 
 namespace mvr
 {
@@ -88,17 +87,24 @@ void VulkanDevice::createInstance()
 	    .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
 	    .apiVersion         = vk::ApiVersion14};
 
-	vk::InstanceCreateInfo createInfo = {
-	    .pApplicationInfo = &appInfo,
-	};
-
+	// flags
+	vk::InstanceCreateFlags flags = {};
 #if __APPLE__
-	createInfo.flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKhr;
+	flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKhr;
 #endif
 
-	auto extensions                    = getRequiredExtensions();
-	createInfo.enabledExtensionCount   = static_cast<uint32_t>(extensions.size());
-	createInfo.ppEnabledExtensionNames = extensions.data();
+	// extensions
+	auto extensions = getRequiredExtensions();
+
+	// Check if the required GLFW extensions are supported by the Vulkan implementation.
+	hasGlfwRequiredInstanceExtensions();
+
+	vk::InstanceCreateInfo createInfo = {
+	    .flags                   = flags,
+	    .pApplicationInfo        = &appInfo,
+	    .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
+	    .ppEnabledExtensionNames = extensions.data(),
+	};
 
 	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
 	if (enableValidationLayers) {
@@ -113,8 +119,6 @@ void VulkanDevice::createInstance()
 	}
 
 	instance = vk::raii::Instance(context, createInfo);
-
-	hasGflwRequiredInstanceExtensions();
 }
 
 void VulkanDevice::pickPhysicalDevice()
@@ -282,9 +286,8 @@ bool VulkanDevice::checkValidationLayerSupport()
 
 std::vector<const char *> VulkanDevice::getRequiredExtensions()
 {
-	uint32_t     glfwExtensionCount = 0;
-	const char **glfwExtensions;
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+	uint32_t glfwExtensionCount = 0;
+	auto     glfwExtensions     = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
 	std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
@@ -294,32 +297,32 @@ std::vector<const char *> VulkanDevice::getRequiredExtensions()
 
 #if __APPLE__
 	extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-	extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #endif
 
 	return extensions;
 }
 
-void VulkanDevice::hasGflwRequiredInstanceExtensions()
+void VulkanDevice::hasGlfwRequiredInstanceExtensions()
 {
-	uint32_t extensionCount = 0;
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-	std::vector<VkExtensionProperties> extensions(extensionCount);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+	auto extensions = context.enumerateInstanceExtensionProperties();
 
 	std::cout << "available extensions:" << std::endl;
-	std::unordered_set<std::string> available;
 	for (const auto &extension : extensions) {
 		std::cout << "\t" << extension.extensionName << std::endl;
-		available.insert(extension.extensionName);
 	}
 
 	std::cout << "required extensions:" << std::endl;
 	auto requiredExtensions = getRequiredExtensions();
 	for (const auto &required : requiredExtensions) {
 		std::cout << "\t" << required << std::endl;
-		if (available.find(required) == available.end()) {
-			throw std::runtime_error("Missing required glfw extension");
+	}
+
+	for (const auto &required : requiredExtensions) {
+		if (std::ranges::none_of(extensions,
+		                         [required](auto const &extension) {
+			                         return strcmp(extension.extensionName, required) == 0;
+		                         })) {
+			throw std::runtime_error("Required GLFW extension not supported: " + std::string(required));
 		}
 	}
 }
