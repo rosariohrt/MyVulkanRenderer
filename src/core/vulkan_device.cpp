@@ -5,6 +5,7 @@
 #include <iostream>
 #include <set>
 #include <unordered_set>
+#include <vulkan/vulkan.hpp>
 
 namespace mvr
 {
@@ -68,11 +69,10 @@ VulkanDevice::~VulkanDevice()
 	vkDestroyDevice(device_, nullptr);
 
 	if (enableValidationLayers) {
-		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+		DestroyDebugUtilsMessengerEXT(*instance, debugMessenger, nullptr);
 	}
 
-	vkDestroySurfaceKHR(instance, surface_, nullptr);
-	vkDestroyInstance(instance, nullptr);
+	vkDestroySurfaceKHR(*instance, surface_, nullptr);
 }
 
 void VulkanDevice::createInstance()
@@ -81,20 +81,19 @@ void VulkanDevice::createInstance()
 		throw std::runtime_error("validation layers requested, but not available!");
 	}
 
-	VkApplicationInfo appInfo  = {};
-	appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName   = "LittleVulkanEngine App";
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.pEngineName        = "No Engine";
-	appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion         = VK_API_VERSION_1_0;
+	constexpr vk::ApplicationInfo appInfo{
+	    .pApplicationName   = "MyVulkanRenderer App",
+	    .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+	    .pEngineName        = "No Engine",
+	    .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
+	    .apiVersion         = vk::ApiVersion14};
 
-	VkInstanceCreateInfo createInfo = {};
-	createInfo.sType                = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	createInfo.pApplicationInfo     = &appInfo;
+	vk::InstanceCreateInfo createInfo = {
+	    .pApplicationInfo = &appInfo,
+	};
 
 #if __APPLE__
-	createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+	createInfo.flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKhr;
 #endif
 
 	auto extensions                    = getRequiredExtensions();
@@ -113,9 +112,7 @@ void VulkanDevice::createInstance()
 		createInfo.pNext             = nullptr;
 	}
 
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create instance!");
-	}
+	instance = vk::raii::Instance(context, createInfo);
 
 	hasGflwRequiredInstanceExtensions();
 }
@@ -123,13 +120,13 @@ void VulkanDevice::createInstance()
 void VulkanDevice::pickPhysicalDevice()
 {
 	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+	vkEnumeratePhysicalDevices(*instance, &deviceCount, nullptr);
 	if (deviceCount == 0) {
 		throw std::runtime_error("failed to find GPUs with Vulkan support!");
 	}
 	std::cout << "Device count: " << deviceCount << std::endl;
 	std::vector<VkPhysicalDevice> devices(deviceCount);
-	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+	vkEnumeratePhysicalDevices(*instance, &deviceCount, devices.data());
 
 	for (const auto &device : devices) {
 		if (isDeviceSuitable(device)) {
@@ -210,7 +207,7 @@ void VulkanDevice::createCommandPool()
 
 void VulkanDevice::createSurface()
 {
-	window.createWindowSurface(instance, &surface_);
+	window.createWindowSurface(*instance, &surface_);
 }
 
 bool VulkanDevice::isDeviceSuitable(VkPhysicalDevice device)
@@ -252,7 +249,7 @@ void VulkanDevice::setupDebugMessenger()
 		return;
 	VkDebugUtilsMessengerCreateInfoEXT createInfo;
 	populateDebugMessengerCreateInfo(createInfo);
-	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+	if (CreateDebugUtilsMessengerEXT(*instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
 		throw std::runtime_error("failed to set up debug messenger!");
 	}
 }

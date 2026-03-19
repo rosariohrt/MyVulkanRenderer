@@ -32,7 +32,7 @@ class VulkanDevice
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else
-	const bool                      enableValidationLayers = true;
+	const bool enableValidationLayers = true;
 #endif
 
 	VulkanDevice(Window &window);
@@ -116,7 +116,8 @@ class VulkanDevice
 	bool                      checkDeviceExtensionSupport(VkPhysicalDevice device);
 	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
 
-	VkInstance               instance;
+	vk::raii::Context        context;
+	vk::raii::Instance       instance = nullptr;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice         physicalDevice = VK_NULL_HANDLE;
 	Window                  &window;
@@ -131,7 +132,7 @@ class VulkanDevice
 #ifdef __APPLE__
 	const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, "VK_KHR_portability_subset"};
 #else
-	const std::vector<const char *> deviceExtensions       = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 #endif
 };
 
