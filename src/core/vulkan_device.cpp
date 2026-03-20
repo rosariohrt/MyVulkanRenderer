@@ -92,11 +92,10 @@ void VulkanDevice::createInstance()
 #if __APPLE__
 	flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKhr;
 #endif
-
 	// extensions
 	auto extensions = getRequiredExtensions();
 
-	// Check if the required GLFW extensions are supported by the Vulkan implementation.
+	// Verify and log required Vulkan instance extensions
 	hasGlfwRequiredInstanceExtensions();
 
 	vk::InstanceCreateInfo createInfo = {
@@ -305,18 +304,18 @@ std::vector<const char *> VulkanDevice::getRequiredExtensions()
 void VulkanDevice::hasGlfwRequiredInstanceExtensions()
 {
 	auto extensions = context.enumerateInstanceExtensionProperties();
-
 	std::cout << "available extensions:" << std::endl;
 	for (const auto &extension : extensions) {
 		std::cout << "\t" << extension.extensionName << std::endl;
 	}
 
-	std::cout << "required extensions:" << std::endl;
 	auto requiredExtensions = getRequiredExtensions();
+	std::cout << "required extensions:" << std::endl;
 	for (const auto &required : requiredExtensions) {
 		std::cout << "\t" << required << std::endl;
 	}
 
+	// Check if the required GLFW extensions are supported by the Vulkan implementation.
 	for (const auto &required : requiredExtensions) {
 		if (std::ranges::none_of(extensions,
 		                         [required](auto const &extension) {
