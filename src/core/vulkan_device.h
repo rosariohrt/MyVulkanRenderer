@@ -108,7 +108,7 @@ class VulkanDevice
 	// helper functions
 	bool                      isDeviceSuitable(VkPhysicalDevice device);
 	std::vector<const char *> getRequiredExtensions();
-	bool                      checkValidationLayerSupport();
+	void                      checkValidationLayerSupport();
 	QueueFamilyIndices        findQueueFamilies(VkPhysicalDevice device);
 	void                      populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 	void                      hasGlfwRequiredInstanceExtensions();

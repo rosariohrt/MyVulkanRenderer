@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <set>
+#include <vector>
 
 namespace mvr
 {
@@ -76,16 +77,16 @@ VulkanDevice::~VulkanDevice()
 
 void VulkanDevice::createInstance()
 {
-	if (enableValidationLayers && !checkValidationLayerSupport()) {
-		throw std::runtime_error("validation layers requested, but not available!");
-	}
-
 	constexpr vk::ApplicationInfo appInfo{
 	    .pApplicationName   = "MyVulkanRenderer App",
 	    .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 	    .pEngineName        = "No Engine",
 	    .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
 	    .apiVersion         = vk::ApiVersion14};
+
+	if (enableValidationLayers) {
+		checkValidationLayerSupport();
+	}
 
 	// flags
 	vk::InstanceCreateFlags flags = {};
@@ -257,30 +258,27 @@ void VulkanDevice::setupDebugMessenger()
 	}
 }
 
-bool VulkanDevice::checkValidationLayerSupport()
+void VulkanDevice::checkValidationLayerSupport()
 {
-	uint32_t layerCount;
-	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-	std::vector<VkLayerProperties> availableLayers(layerCount);
-	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-	for (const char *layerName : validationLayers) {
-		bool layerFound = false;
-
-		for (const auto &layerProperties : availableLayers) {
-			if (strcmp(layerName, layerProperties.layerName) == 0) {
-				layerFound = true;
-				break;
-			}
-		}
-
-		if (!layerFound) {
-			return false;
-		}
+	// Get the required layers
+	std::vector<char const *> requiredLayers;
+	if (enableValidationLayers) {
+		requiredLayers.assign(validationLayers.begin(), validationLayers.end());
 	}
 
-	return true;
+	// Check if the required layers are supported by the Vulkan implementation.
+	auto layerProperties    = context.enumerateInstanceLayerProperties();
+	auto unsupportedLayerIt = std::ranges::find_if(requiredLayers,
+	                                               [&layerProperties](auto const &requiredLayer) {
+		                                               return std::ranges::none_of(layerProperties,
+		                                                                           [requiredLayer](auto const &layerProperty) {
+			                                                                           return strcmp(layerProperty.layerName, requiredLayer) == 0;
+		                                                                           });
+	                                               });
+
+	if (unsupportedLayerIt != requiredLayers.end()) {
+		std::cerr << "Unsupported validation layer: " << *unsupportedLayerIt << std::endl;
+	}
 }
 
 std::vector<const char *> VulkanDevice::getRequiredExtensions()
