@@ -91,7 +91,7 @@ void VulkanDevice::createInstance()
 
 	vk::InstanceCreateFlags flags = {};
 #if __APPLE__
-	flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKhr;
+	flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
 #endif
 
 	auto layers     = getRequiredLayers();
