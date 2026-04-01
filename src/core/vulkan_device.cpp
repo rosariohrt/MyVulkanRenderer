@@ -84,39 +84,28 @@ void VulkanDevice::createInstance()
 	    .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
 	    .apiVersion         = vk::ApiVersion14};
 
+	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
 	if (enableValidationLayers) {
-		checkValidationLayerSupport();
+		populateDebugMessengerCreateInfo(debugCreateInfo);
 	}
 
-	// flags
 	vk::InstanceCreateFlags flags = {};
 #if __APPLE__
 	flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKhr;
 #endif
-	// extensions
+
+	auto layers     = getRequiredLayers();
 	auto extensions = getRequiredExtensions();
 
-	// Verify and log required Vulkan instance extensions
-	hasGlfwRequiredInstanceExtensions();
-
 	vk::InstanceCreateInfo createInfo = {
+	    .pNext                   = enableValidationLayers ? &debugCreateInfo : nullptr,
 	    .flags                   = flags,
 	    .pApplicationInfo        = &appInfo,
+	    .enabledLayerCount       = static_cast<uint32_t>(layers.size()),
+	    .ppEnabledLayerNames     = layers.empty() ? nullptr : layers.data(),
 	    .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
-	    .ppEnabledExtensionNames = extensions.data(),
+	    .ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data(),
 	};
-
-	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-	if (enableValidationLayers) {
-		createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
-		createInfo.ppEnabledLayerNames = validationLayers.data();
-
-		populateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *) &debugCreateInfo;
-	} else {
-		createInfo.enabledLayerCount = 0;
-		createInfo.pNext             = nullptr;
-	}
 
 	instance = vk::raii::Instance(context, createInfo);
 }
@@ -258,13 +247,15 @@ void VulkanDevice::setupDebugMessenger()
 	}
 }
 
-void VulkanDevice::checkValidationLayerSupport()
+std::vector<const char *> VulkanDevice::getRequiredLayers()
 {
+	if (!enableValidationLayers) {
+		return {};
+	}
+
 	// Get the required layers
 	std::vector<char const *> requiredLayers;
-	if (enableValidationLayers) {
-		requiredLayers.assign(validationLayers.begin(), validationLayers.end());
-	}
+	requiredLayers.assign(validationLayers.begin(), validationLayers.end());
 
 	// Check if the required layers are supported by the Vulkan implementation.
 	auto layerProperties    = context.enumerateInstanceLayerProperties();
@@ -277,51 +268,51 @@ void VulkanDevice::checkValidationLayerSupport()
 	                                               });
 
 	if (unsupportedLayerIt != requiredLayers.end()) {
-		std::cerr << "Unsupported validation layer: " << *unsupportedLayerIt << std::endl;
+		throw std::runtime_error("Required validation layer not supported: " + std::string(*unsupportedLayerIt));
 	}
+
+	return requiredLayers;
 }
 
 std::vector<const char *> VulkanDevice::getRequiredExtensions()
 {
+	// Get the required extensions
 	uint32_t glfwExtensionCount = 0;
 	auto     glfwExtensions     = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-	std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
+	std::vector<const char *> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 	if (enableValidationLayers) {
-		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
-
 #if __APPLE__
-	extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+	requiredExtensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 #endif
 
-	return extensions;
-}
-
-void VulkanDevice::hasGlfwRequiredInstanceExtensions()
-{
-	auto extensions = context.enumerateInstanceExtensionProperties();
-	std::cout << "available extensions:" << std::endl;
-	for (const auto &extension : extensions) {
-		std::cout << "\t" << extension.extensionName << std::endl;
+	// Log all available instance extensions supported by the system
+	auto supportedExtensions = context.enumerateInstanceExtensionProperties();
+	std::cout << "Supported extensions:" << std::endl;
+	for (const auto &prop : supportedExtensions) {
+		std::cout << "\t" << prop.extensionName << std::endl;
 	}
 
-	auto requiredExtensions = getRequiredExtensions();
-	std::cout << "required extensions:" << std::endl;
-	for (const auto &required : requiredExtensions) {
-		std::cout << "\t" << required << std::endl;
+	// Log the extensions requested for this instance
+	std::cout << "Required extensions:" << std::endl;
+	for (const auto &req : requiredExtensions) {
+		std::cout << "\t" << req << std::endl;
 	}
 
-	// Check if the required GLFW extensions are supported by the Vulkan implementation.
-	for (const auto &required : requiredExtensions) {
-		if (std::ranges::none_of(extensions,
-		                         [required](auto const &extension) {
-			                         return strcmp(extension.extensionName, required) == 0;
-		                         })) {
-			throw std::runtime_error("Required GLFW extension not supported: " + std::string(required));
-		}
+	// Check if the required extensions are supported by the Vulkan implementation.
+	auto it = std::ranges::find_if(requiredExtensions, [&](auto const &req) {
+		return std::ranges::none_of(supportedExtensions, [&](auto const &prop) {
+			return strcmp(prop.extensionName, req) == 0;
+		});
+	});
+
+	if (it != requiredExtensions.end()) {
+		throw std::runtime_error("Required extension not supported: " + std::string(*it));
 	}
+
+	return requiredExtensions;
 }
 
 bool VulkanDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
