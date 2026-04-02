@@ -110,16 +110,21 @@ class VulkanDevice
 	std::vector<const char *> getRequiredExtensions();
 	std::vector<const char *> getRequiredLayers();
 	QueueFamilyIndices        findQueueFamilies(VkPhysicalDevice device);
-	void                      populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+	void                      populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
 	bool                      checkDeviceExtensionSupport(VkPhysicalDevice device);
 	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
+	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
+	    vk::DebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+	    vk::DebugUtilsMessageTypeFlagsEXT             messageType,
+	    const vk::DebugUtilsMessengerCallbackDataEXT *pCallbackData,
+	    void                                         *pUserData);
 
-	vk::raii::Context        context;
-	vk::raii::Instance       instance = nullptr;
-	VkDebugUtilsMessengerEXT debugMessenger;
-	VkPhysicalDevice         physicalDevice = VK_NULL_HANDLE;
-	Window                  &window;
-	VkCommandPool            commandPool;
+	vk::raii::Context                context;
+	vk::raii::Instance               instance       = nullptr;
+	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
+	VkPhysicalDevice                 physicalDevice = VK_NULL_HANDLE;
+	Window                          &window;
+	VkCommandPool                    commandPool;
 
 	VkDevice     device_;
 	VkSurfaceKHR surface_;
