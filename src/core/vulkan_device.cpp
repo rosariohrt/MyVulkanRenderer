@@ -1,6 +1,6 @@
 #include "vulkan_device.h"
 
-// std headers
+// std
 #include <algorithm>
 #include <cstring>
 #include <iostream>
@@ -257,18 +257,28 @@ std::vector<const char *> VulkanDevice::getRequiredLayers()
 	std::vector<char const *> requiredLayers;
 	requiredLayers.assign(validationLayers.begin(), validationLayers.end());
 
-	// Check if the required layers are supported by the Vulkan implementation.
-	auto layerProperties    = context.enumerateInstanceLayerProperties();
-	auto unsupportedLayerIt = std::ranges::find_if(requiredLayers,
-	                                               [&layerProperties](auto const &requiredLayer) {
-		                                               return std::ranges::none_of(layerProperties,
-		                                                                           [requiredLayer](auto const &layerProperty) {
-			                                                                           return strcmp(layerProperty.layerName, requiredLayer) == 0;
-		                                                                           });
-	                                               });
+	// Log all available instance layers supported by the system
+	auto supportedLayers = context.enumerateInstanceLayerProperties();
+	std::cout << "Supported layers:" << std::endl;
+	for (const auto &prop : supportedLayers) {
+		std::cout << "\t" << prop.layerName << std::endl;
+	}
 
-	if (unsupportedLayerIt != requiredLayers.end()) {
-		throw std::runtime_error("Required validation layer not supported: " + std::string(*unsupportedLayerIt));
+	// Log the layers requested for this instance
+	std::cout << "Required layers:" << std::endl;
+	for (const auto &req : requiredLayers) {
+		std::cout << "\t" << req << std::endl;
+	}
+
+	// Check if the required layers are supported by the Vulkan implementation.
+	auto it = std::ranges::find_if(requiredLayers, [&](auto const &req) {
+		return std::ranges::none_of(supportedLayers, [&](auto const &prop) {
+			return strcmp(prop.layerName, req) == 0;
+		});
+	});
+
+	if (it != requiredLayers.end()) {
+		throw std::runtime_error("Required validation layer not supported: " + std::string(*it));
 	}
 
 	return requiredLayers;
@@ -282,10 +292,10 @@ std::vector<const char *> VulkanDevice::getRequiredExtensions()
 
 	std::vector<const char *> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 	if (enableValidationLayers) {
-		requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		requiredExtensions.push_back(vk::EXTDebugUtilsExtensionName);
 	}
 #if __APPLE__
-	requiredExtensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+	requiredExtensions.push_back(vk::KHRPortabilityEnumerationExtensionName);
 #endif
 
 	// Log all available instance extensions supported by the system
