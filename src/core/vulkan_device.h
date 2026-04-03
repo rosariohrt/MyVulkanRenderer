@@ -33,7 +33,9 @@ class VulkanDevice
 #else
 	const bool enableValidationLayers = true;
 #endif
+	VkPhysicalDeviceProperties properties;
 
+	// Constructor & Destructor
 	VulkanDevice(Window &window);
 	~VulkanDevice();
 
@@ -43,6 +45,7 @@ class VulkanDevice
 	VulkanDevice(VulkanDevice &&)            = delete;
 	VulkanDevice &operator=(VulkanDevice &&) = delete;
 
+	// Getters  (inline)
 	VkCommandPool getCommandPool()
 	{
 		return commandPool;
@@ -63,16 +66,17 @@ class VulkanDevice
 	{
 		return presentQueue_;
 	}
-
 	SwapChainSupportDetails getSwapChainSupport()
 	{
 		return querySwapChainSupport(*physicalDevice);
 	}
-	uint32_t           findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	QueueFamilyIndices findPhysicalQueueFamilies()
 	{
 		return findQueueFamilies(*physicalDevice);
 	}
+
+	// Utilities
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	VkFormat findSupportedFormat(
 	    const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
@@ -95,34 +99,7 @@ class VulkanDevice
 	    VkImage                 &image,
 	    VkDeviceMemory          &imageMemory);
 
-	VkPhysicalDeviceProperties properties;
-
   private:
-	void createInstance();
-	void setupDebugMessenger();
-	void createSurface();
-	void pickPhysicalDevice();
-	void createLogicalDevice();
-	void createCommandPool();
-
-	// helper functions
-	bool                      isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevice);
-	std::vector<const char *> getRequiredExtensions();
-	std::vector<const char *> getRequiredLayers();
-	QueueFamilyIndices        findQueueFamilies(VkPhysicalDevice device);
-	void                      populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
-	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
-	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
-	    vk::DebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
-	    vk::DebugUtilsMessageTypeFlagsEXT             messageType,
-	    const vk::DebugUtilsMessengerCallbackDataEXT *pCallbackData,
-	    void                                         *pUserData);
-	bool isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevice) const;
-	bool hasRequiredApiVersion(vk::raii::PhysicalDevice const &physicalDevice) const;
-	bool hasGraphicsSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
-	bool hasRequiredExtensions(vk::raii::PhysicalDevice const &physicalDevice) const;
-	bool hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalDevice) const;
-
 	vk::raii::Context                context;
 	vk::raii::Instance               instance       = nullptr;
 	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
@@ -141,6 +118,30 @@ class VulkanDevice
 #else
 	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName};
 #endif
+
+	void createInstance();
+	void setupDebugMessenger();
+	void createSurface();
+	void pickPhysicalDevice();
+	void createLogicalDevice();
+	void createCommandPool();
+
+	// helper functions
+	void              populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
+	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
+	    vk::DebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+	    vk::DebugUtilsMessageTypeFlagsEXT             messageType,
+	    const vk::DebugUtilsMessengerCallbackDataEXT *pCallbackData,
+	    void                                         *pUserData);
+	std::vector<const char *> getRequiredLayers();
+	std::vector<const char *> getRequiredExtensions();
+	bool                      isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevice);
+	bool                      hasRequiredApiVersion(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool                      hasGraphicsSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool                      hasRequiredExtensions(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool                      hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalDevice) const;
+	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
+	QueueFamilyIndices        findQueueFamilies(VkPhysicalDevice device);
 };
 
 }        // namespace mvr
