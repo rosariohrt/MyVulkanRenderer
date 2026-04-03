@@ -66,12 +66,12 @@ class VulkanDevice
 
 	SwapChainSupportDetails getSwapChainSupport()
 	{
-		return querySwapChainSupport(physicalDevice);
+		return querySwapChainSupport(*physicalDevice);
 	}
 	uint32_t           findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	QueueFamilyIndices findPhysicalQueueFamilies()
 	{
-		return findQueueFamilies(physicalDevice);
+		return findQueueFamilies(*physicalDevice);
 	}
 	VkFormat findSupportedFormat(
 	    const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -106,23 +106,27 @@ class VulkanDevice
 	void createCommandPool();
 
 	// helper functions
-	bool                      isDeviceSuitable(VkPhysicalDevice device);
+	bool                      isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevice);
 	std::vector<const char *> getRequiredExtensions();
 	std::vector<const char *> getRequiredLayers();
 	QueueFamilyIndices        findQueueFamilies(VkPhysicalDevice device);
 	void                      populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
-	bool                      checkDeviceExtensionSupport(VkPhysicalDevice device);
 	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
 	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	    vk::DebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
 	    vk::DebugUtilsMessageTypeFlagsEXT             messageType,
 	    const vk::DebugUtilsMessengerCallbackDataEXT *pCallbackData,
 	    void                                         *pUserData);
+	bool isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool hasRequiredApiVersion(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool hasGraphicsSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool hasRequiredExtensions(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalDevice) const;
 
 	vk::raii::Context                context;
 	vk::raii::Instance               instance       = nullptr;
 	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
-	VkPhysicalDevice                 physicalDevice = VK_NULL_HANDLE;
+	vk::raii::PhysicalDevice         physicalDevice = nullptr;
 	Window                          &window;
 	VkCommandPool                    commandPool;
 
@@ -135,7 +139,7 @@ class VulkanDevice
 #ifdef __APPLE__
 	const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, "VK_KHR_portability_subset"};
 #else
-	const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName};
 #endif
 };
 
