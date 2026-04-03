@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <set>
+#include <string_view>
 #include <vector>
 
 namespace mvr
@@ -407,7 +408,7 @@ std::vector<const char *> VulkanDevice::getRequiredLayers()
 	// Check if the required layers are supported by the Vulkan implementation.
 	auto it = std::ranges::find_if(requiredLayers, [&](auto const &req) {
 		return std::ranges::none_of(supportedLayers, [&](auto const &prop) {
-			return strcmp(prop.layerName, req) == 0;
+			return std::string_view(prop.layerName) == req;
 		});
 	});
 
@@ -448,7 +449,7 @@ std::vector<const char *> VulkanDevice::getRequiredExtensions()
 	// Check if the required extensions are supported by the Vulkan implementation.
 	auto it = std::ranges::find_if(requiredExtensions, [&](auto const &req) {
 		return std::ranges::none_of(supportedExtensions, [&](auto const &prop) {
-			return strcmp(prop.extensionName, req) == 0;
+			return std::string_view(prop.extensionName) == req;
 		});
 	});
 
