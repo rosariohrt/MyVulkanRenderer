@@ -15,13 +15,12 @@ struct SwapChainSupportDetails {
 };
 
 struct QueueFamilyIndices {
-	uint32_t graphicsFamily;
-	uint32_t presentFamily;
-	bool     graphicsFamilyHasValue = false;
-	bool     presentFamilyHasValue  = false;
-	bool     isComplete()
+	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
+	// TODO: std::optional<uint32_t> computeFamily;
+	bool isComplete()
 	{
-		return graphicsFamilyHasValue && presentFamilyHasValue;
+		return graphicsFamily.has_value() && presentFamily.has_value();
 	}
 };
 
@@ -52,7 +51,7 @@ class VulkanDevice
 	}
 	VkDevice device()
 	{
-		return device_;
+		return *device_;
 	}
 	VkSurfaceKHR surface()
 	{
@@ -60,11 +59,11 @@ class VulkanDevice
 	}
 	VkQueue graphicsQueue()
 	{
-		return graphicsQueue_;
+		return *graphicsQueue_;
 	}
 	VkQueue presentQueue()
 	{
-		return presentQueue_;
+		return *presentQueue_;
 	}
 	SwapChainSupportDetails getSwapChainSupport()
 	{
@@ -72,7 +71,7 @@ class VulkanDevice
 	}
 	QueueFamilyIndices findPhysicalQueueFamilies()
 	{
-		return findQueueFamilies(*physicalDevice);
+		return findQueueFamilies(physicalDevice);
 	}
 
 	// Utilities
@@ -107,14 +106,18 @@ class VulkanDevice
 	Window                          &window;
 	VkCommandPool                    commandPool;
 
-	VkDevice     device_;
-	VkSurfaceKHR surface_;
-	VkQueue      graphicsQueue_;
-	VkQueue      presentQueue_;
+	vk::raii::Device device_ = nullptr;
+	VkSurfaceKHR     surface_;
+
+	vk::raii::Queue graphicsQueue_ = nullptr;
+	vk::raii::Queue presentQueue_  = nullptr;
+
+	// queue families indices
+	QueueFamilyIndices queueFamilyIndices;
 
 	const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 #ifdef __APPLE__
-	const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, "VK_KHR_portability_subset"};
+	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName, vk::KHRPortabilitySubsetExtensionName};
 #else
 	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName};
 #endif
@@ -140,8 +143,8 @@ class VulkanDevice
 	bool                      hasGraphicsSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
 	bool                      hasRequiredExtensions(vk::raii::PhysicalDevice const &physicalDevice) const;
 	bool                      hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalDevice) const;
+	QueueFamilyIndices        findQueueFamilies(vk::raii::PhysicalDevice const &physicalDevice);
 	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
-	QueueFamilyIndices        findQueueFamilies(VkPhysicalDevice device);
 };
 
 }        // namespace mvr
