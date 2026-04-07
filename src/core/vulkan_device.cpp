@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <set>
+#include <stdexcept>
 #include <string_view>
 #include <vector>
 #include <vulkan/vulkan.hpp>
@@ -20,12 +21,17 @@ namespace mvr
 VulkanDevice::VulkanDevice(Window &window) :
     window{window}
 {
-	createInstance();
-	setupDebugMessenger();
-	createSurface();
-	pickPhysicalDevice();
-	createLogicalDevice();
-	createCommandPool();
+	try {
+		createInstance();
+		setupDebugMessenger();
+		createSurface();
+		pickPhysicalDevice();
+		createLogicalDevice();
+		createCommandPool();
+	} catch (const std::runtime_error &e) {
+		std::cerr << "VulkanDevice initialization aborted: " << e.what() << std::endl;
+		throw;
+	}
 }
 
 VulkanDevice::~VulkanDevice()
@@ -267,7 +273,7 @@ void VulkanDevice::pickPhysicalDevice()
 {
 	auto physicalDevices = instance.enumeratePhysicalDevices();
 	if (physicalDevices.empty()) {
-		throw std::runtime_error("failed to find GPUs with Vulkan support!");
+		throw std::runtime_error("Failed to find GPUs with Vulkan support!");
 	}
 
 	// Log all available physical devices
@@ -283,16 +289,16 @@ void VulkanDevice::pickPhysicalDevice()
 		return isDeviceSuitable(physicalDevice);
 	});
 	if (it == physicalDevices.end()) {
-		throw std::runtime_error("failed to find a suitable GPU!");
+		throw std::runtime_error("Failed to find a suitable GPU!");
+	} else {
+		physicalDevice     = *it;
+		queueFamilyIndices = findQueueFamilies(physicalDevice);
 	}
 
 	// TODO: Implement a scoring system to select the most suitable GPU.
 	// Currently, it picks the first one that meets the minimum requirements.
 	// A more robust approach would evaluate deviceType (Discrete > Integrated),
 	// VRAM capacity, and limits.maxImageDimension2D to assign a quality score.
-
-	physicalDevice     = *it;
-	queueFamilyIndices = findQueueFamilies(physicalDevice);
 }
 
 void VulkanDevice::createLogicalDevice()
@@ -459,13 +465,11 @@ std::vector<const char *> VulkanDevice::getRequiredExtensions()
 
 bool VulkanDevice::isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevice)
 {
-	bool supportsVulkan1_3          = hasRequiredApiVersion(physicalDevice);
-	bool supportsGraphics           = hasGraphicsSupport(physicalDevice);
-	bool supportsRequiredExtensions = hasRequiredExtensions(physicalDevice);
-	bool supportsRequiredFeatures   = hasRequiredFeatures(physicalDevice);
-	bool supportsSwapChain          = hasSwapchainSupport(physicalDevice);
-
-	return supportsVulkan1_3 && supportsGraphics && supportsRequiredExtensions && supportsRequiredFeatures && supportsSwapChain;
+	return hasRequiredApiVersion(physicalDevice) &&
+	       hasGraphicsSupport(physicalDevice) &&
+	       hasRequiredExtensions(physicalDevice) &&
+	       hasRequiredFeatures(physicalDevice) &&
+	       hasSwapchainSupport(physicalDevice);
 }
 
 bool VulkanDevice::hasRequiredApiVersion(vk::raii::PhysicalDevice const &physicalDevice) const
@@ -529,17 +533,13 @@ bool VulkanDevice::hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalD
 
 bool VulkanDevice::hasSwapchainSupport(vk::raii::PhysicalDevice const &physicalDevice) const
 {
-	if (hasRequiredExtensions(physicalDevice)) {
-		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
-		bool                    result           = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-		if (!result) {
-			std::cerr << " - Does not support required swapchain support" << std::endl;
-		}
-
-		return result;
+	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+	bool                    result           = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+	if (!result) {
+		std::cerr << " - Does not support required swapchain support" << std::endl;
 	}
 
-	return false;
+	return result;
 }
 
 QueueFamilyIndices VulkanDevice::findQueueFamilies(vk::raii::PhysicalDevice const &physicalDevice) const
