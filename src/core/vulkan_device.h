@@ -67,7 +67,7 @@ class VulkanDevice
 	}
 	SwapChainSupportDetails getSwapChainSupport()
 	{
-		return querySwapChainSupport(*physicalDevice);
+		return querySwapChainSupport(physicalDevice);
 	}
 	QueueFamilyIndices findPhysicalQueueFamilies()
 	{
@@ -143,8 +143,9 @@ class VulkanDevice
 	bool                      hasGraphicsSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
 	bool                      hasRequiredExtensions(vk::raii::PhysicalDevice const &physicalDevice) const;
 	bool                      hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalDevice) const;
-	QueueFamilyIndices        findQueueFamilies(vk::raii::PhysicalDevice const &physicalDevice);
-	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
+	bool                      hasSwapchainSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
+	QueueFamilyIndices        findQueueFamilies(vk::raii::PhysicalDevice const &physicalDevice) const;
+	SwapChainSupportDetails   querySwapChainSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
 };
 
 }        // namespace mvr

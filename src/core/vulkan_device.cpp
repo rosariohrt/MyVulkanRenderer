@@ -459,33 +459,36 @@ std::vector<const char *> VulkanDevice::getRequiredExtensions()
 
 bool VulkanDevice::isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevice)
 {
-	bool supportsVulkan1_3   = hasRequiredApiVersion(physicalDevice);
-	bool supportGraphics     = hasGraphicsSupport(physicalDevice);
-	bool extensionsSupported = hasRequiredExtensions(physicalDevice);
-	bool featuresSupported   = hasRequiredFeatures(physicalDevice);
-	bool swapChainAdequate   = false;
-	if (extensionsSupported) {
-		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(*physicalDevice);
-		swapChainAdequate                        = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-	}
+	bool supportsVulkan1_3          = hasRequiredApiVersion(physicalDevice);
+	bool supportsGraphics           = hasGraphicsSupport(physicalDevice);
+	bool supportsRequiredExtensions = hasRequiredExtensions(physicalDevice);
+	bool supportsRequiredFeatures   = hasRequiredFeatures(physicalDevice);
+	bool supportsSwapChain          = hasSwapchainSupport(physicalDevice);
 
-	return supportsVulkan1_3 && supportGraphics && extensionsSupported && featuresSupported && swapChainAdequate;
+	return supportsVulkan1_3 && supportsGraphics && supportsRequiredExtensions && supportsRequiredFeatures && supportsSwapChain;
 }
 
 bool VulkanDevice::hasRequiredApiVersion(vk::raii::PhysicalDevice const &physicalDevice) const
 {
 	// Check if the physicalDevice supports the Vulkan 1.3 API version
-	return physicalDevice.getProperties().apiVersion >= VK_API_VERSION_1_3;
+	bool result = physicalDevice.getProperties().apiVersion >= VK_API_VERSION_1_3;
+	if (!result) {
+		std::cerr << " - Does not support Vulkan 1.3 API version" << std::endl;
+	}
+
+	return result;
 }
 
 bool VulkanDevice::hasGraphicsSupport(vk::raii::PhysicalDevice const &physicalDevice) const
 {
 	// Check if any of the queue families support graphics operations
-	auto queueFamilies = physicalDevice.getQueueFamilyProperties();
+	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+	bool               result  = indices.isComplete();
+	if (!result) {
+		std::cerr << " - Missing required queue families" << std::endl;
+	}
 
-	return std::ranges::any_of(queueFamilies, [](auto const &qfp) {
-		return !!(qfp.queueFlags & vk::QueueFlagBits::eGraphics);
-	});
+	return result;
 }
 
 bool VulkanDevice::hasRequiredExtensions(vk::raii::PhysicalDevice const &physicalDevice) const
@@ -499,7 +502,12 @@ bool VulkanDevice::hasRequiredExtensions(vk::raii::PhysicalDevice const &physica
 		});
 	};
 
-	return std::ranges::all_of(deviceExtensions, isSupported);
+	bool result = std::ranges::all_of(deviceExtensions, isSupported);
+	if (!result) {
+		std::cerr << " - Missing required extensions" << std::endl;
+	}
+
+	return result;
 }
 
 bool VulkanDevice::hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalDevice) const
@@ -510,12 +518,31 @@ bool VulkanDevice::hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalD
 	    vk::PhysicalDeviceVulkan13Features,
 	    vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
 
-	return features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering &&
+	bool result = features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering &&
+	              features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
+	if (!result) {
+		std::cerr << " - Does not support required features" << std::endl;
+	}
 
-	       features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
+	return result;
 }
 
-QueueFamilyIndices VulkanDevice::findQueueFamilies(vk::raii::PhysicalDevice const &physicalDevice)
+bool VulkanDevice::hasSwapchainSupport(vk::raii::PhysicalDevice const &physicalDevice) const
+{
+	if (hasRequiredExtensions(physicalDevice)) {
+		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+		bool                    result           = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+		if (!result) {
+			std::cerr << " - Does not support required swapchain support" << std::endl;
+		}
+
+		return result;
+	}
+
+	return false;
+}
+
+QueueFamilyIndices VulkanDevice::findQueueFamilies(vk::raii::PhysicalDevice const &physicalDevice) const
 {
 	QueueFamilyIndices indices;
 
@@ -536,26 +563,26 @@ QueueFamilyIndices VulkanDevice::findQueueFamilies(vk::raii::PhysicalDevice cons
 	return indices;
 }
 
-SwapChainSupportDetails VulkanDevice::querySwapChainSupport(VkPhysicalDevice device)
+SwapChainSupportDetails VulkanDevice::querySwapChainSupport(vk::raii::PhysicalDevice const &physicalDevice) const
 {
 	SwapChainSupportDetails details;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface_, &details.capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*physicalDevice, surface_, &details.capabilities);
 
 	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface_, &formatCount, nullptr);
+	vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, surface_, &formatCount, nullptr);
 
 	if (formatCount != 0) {
 		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface_, &formatCount, details.formats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, surface_, &formatCount, details.formats.data());
 	}
 
 	uint32_t presentModeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface_, &presentModeCount, nullptr);
+	vkGetPhysicalDeviceSurfacePresentModesKHR(*physicalDevice, surface_, &presentModeCount, nullptr);
 
 	if (presentModeCount != 0) {
 		details.presentModes.resize(presentModeCount);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(
-		    device,
+		    *physicalDevice,
 		    surface_,
 		    &presentModeCount,
 		    details.presentModes.data());
