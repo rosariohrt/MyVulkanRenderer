@@ -28,7 +28,7 @@ VulkanDevice::VulkanDevice(Window &window) :
 		pickPhysicalDevice();
 		createLogicalDevice();
 		createCommandPool();
-	} catch (const std::runtime_error &e) {
+	} catch (const std::exception &e) {
 		std::cerr << "VulkanDevice initialization aborted: " << e.what() << std::endl;
 		throw;
 	}
@@ -280,7 +280,7 @@ void VulkanDevice::pickPhysicalDevice()
 	std::cout << "Device count: " << physicalDevices.size() << std::endl;
 	for (const auto &device : physicalDevices) {
 		auto props = device.getProperties();
-		std::cout << "Physical device: " << props.deviceName
+		std::cout << "Available GPUs: " << props.deviceName
 		          << " (Type: " << to_string(props.deviceType) << ")" << std::endl;
 	}
 
@@ -293,6 +293,9 @@ void VulkanDevice::pickPhysicalDevice()
 	} else {
 		physicalDevice     = *it;
 		queueFamilyIndices = findQueueFamilies(physicalDevice);
+
+		vk::PhysicalDeviceProperties deviceProperties = physicalDevice.getProperties();
+		std::cout << "Selected GPU: " << deviceProperties.deviceName << std::endl;
 	}
 
 	// TODO: Implement a scoring system to select the most suitable GPU.
