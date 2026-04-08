@@ -281,7 +281,7 @@ void VulkanDevice::pickPhysicalDevice()
 	std::cout << "Available GPUs: " << std::endl;
 	for (const auto &device : physicalDevices) {
 		auto props = device.getProperties();
-		std::cout << props.deviceName << " (Type: " << to_string(props.deviceType) << ")" << std::endl;
+		std::cout << "   " << props.deviceName << " (Type: " << to_string(props.deviceType) << ")" << std::endl;
 	}
 
 	// Find the first suitable device

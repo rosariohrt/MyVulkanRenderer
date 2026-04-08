@@ -30,7 +30,7 @@ class VulkanDevice
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else
-	const bool enableValidationLayers = true;
+	const bool                      enableValidationLayers = true;
 #endif
 	VkPhysicalDeviceProperties properties;
 
@@ -117,9 +117,9 @@ class VulkanDevice
 
 	const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 #ifdef __APPLE__
-	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName, vk::KHRPortabilitySubsetExtensionName};
+	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName, "VK_KHR_portability_subset"};
 #else
-	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName};
+	const std::vector<const char *> deviceExtensions       = {vk::KHRSwapchainExtensionName};
 #endif
 
 	void createInstance();
