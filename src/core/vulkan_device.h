@@ -53,6 +53,10 @@ class VulkanDevice
 	{
 		return *device_;
 	}
+	vk::raii::PhysicalDevice &physicalDevice()
+	{
+		return physicalDevice_;
+	}
 	VkSurfaceKHR surface()
 	{
 		return *surface_;
@@ -67,11 +71,11 @@ class VulkanDevice
 	}
 	SwapChainSupportDetails getSwapChainSupport()
 	{
-		return querySwapChainSupport(physicalDevice);
+		return querySwapChainSupport(physicalDevice_);
 	}
 	QueueFamilyIndices findPhysicalQueueFamilies()
 	{
-		return findQueueFamilies(physicalDevice);
+		return findQueueFamilies(physicalDevice_);
 	}
 
 	// Utilities
@@ -100,9 +104,9 @@ class VulkanDevice
 
   private:
 	vk::raii::Context                context;
-	vk::raii::Instance               instance       = nullptr;
-	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
-	vk::raii::PhysicalDevice         physicalDevice = nullptr;
+	vk::raii::Instance               instance        = nullptr;
+	vk::raii::DebugUtilsMessengerEXT debugMessenger  = nullptr;
+	vk::raii::PhysicalDevice         physicalDevice_ = nullptr;
 	Window                          &window;
 	VkCommandPool                    commandPool;
 
