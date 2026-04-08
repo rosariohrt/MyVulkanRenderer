@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <string_view>
 #include <vector>
-#include <vulkan/vulkan.hpp>
 
 namespace mvr
 {
@@ -37,8 +36,6 @@ VulkanDevice::VulkanDevice(Window &window) :
 VulkanDevice::~VulkanDevice()
 {
 	vkDestroyCommandPool(*device_, commandPool, nullptr);
-
-	vkDestroySurfaceKHR(*instance, surface_, nullptr);
 }
 
 // ==================================================
@@ -266,7 +263,9 @@ void VulkanDevice::setupDebugMessenger()
 
 void VulkanDevice::createSurface()
 {
-	window.createWindowSurface(*instance, &surface_);
+	VkSurfaceKHR _surface;
+	window.createWindowSurface(*instance, &_surface);
+	surface_ = vk::raii::SurfaceKHR(instance, _surface);
 }
 
 void VulkanDevice::pickPhysicalDevice()
@@ -569,24 +568,24 @@ QueueFamilyIndices VulkanDevice::findQueueFamilies(vk::raii::PhysicalDevice cons
 SwapChainSupportDetails VulkanDevice::querySwapChainSupport(vk::raii::PhysicalDevice const &physicalDevice) const
 {
 	SwapChainSupportDetails details;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*physicalDevice, surface_, &details.capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*physicalDevice, *surface_, &details.capabilities);
 
 	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, surface_, &formatCount, nullptr);
+	vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, *surface_, &formatCount, nullptr);
 
 	if (formatCount != 0) {
 		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, surface_, &formatCount, details.formats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, *surface_, &formatCount, details.formats.data());
 	}
 
 	uint32_t presentModeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(*physicalDevice, surface_, &presentModeCount, nullptr);
+	vkGetPhysicalDeviceSurfacePresentModesKHR(*physicalDevice, *surface_, &presentModeCount, nullptr);
 
 	if (presentModeCount != 0) {
 		details.presentModes.resize(presentModeCount);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(
 		    *physicalDevice,
-		    surface_,
+		    *surface_,
 		    &presentModeCount,
 		    details.presentModes.data());
 	}

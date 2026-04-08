@@ -30,7 +30,7 @@ class VulkanDevice
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else
-	const bool                      enableValidationLayers = true;
+	const bool enableValidationLayers = true;
 #endif
 	VkPhysicalDeviceProperties properties;
 
@@ -55,7 +55,7 @@ class VulkanDevice
 	}
 	VkSurfaceKHR surface()
 	{
-		return surface_;
+		return *surface_;
 	}
 	VkQueue graphicsQueue()
 	{
@@ -106,8 +106,8 @@ class VulkanDevice
 	Window                          &window;
 	VkCommandPool                    commandPool;
 
-	vk::raii::Device device_ = nullptr;
-	VkSurfaceKHR     surface_;
+	vk::raii::Device     device_  = nullptr;
+	vk::raii::SurfaceKHR surface_ = nullptr;
 
 	vk::raii::Queue graphicsQueue_ = nullptr;
 	vk::raii::Queue presentQueue_  = nullptr;
@@ -119,7 +119,7 @@ class VulkanDevice
 #ifdef __APPLE__
 	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName, "VK_KHR_portability_subset"};
 #else
-	const std::vector<const char *> deviceExtensions       = {vk::KHRSwapchainExtensionName};
+	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName};
 #endif
 
 	void createInstance();
