@@ -45,7 +45,7 @@ VulkanDevice::~VulkanDevice()
 uint32_t VulkanDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
 	VkPhysicalDeviceMemoryProperties memProperties;
-	vkGetPhysicalDeviceMemoryProperties(*physicalDevice_, &memProperties);
+	vkGetPhysicalDeviceMemoryProperties(*physicalDevice, &memProperties);
 	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 		if ((typeFilter & (1 << i)) &&
 		    (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -61,7 +61,7 @@ VkFormat VulkanDevice::findSupportedFormat(
 {
 	for (VkFormat format : candidates) {
 		VkFormatProperties props;
-		vkGetPhysicalDeviceFormatProperties(*physicalDevice_, format, &props);
+		vkGetPhysicalDeviceFormatProperties(*physicalDevice, format, &props);
 
 		if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
 			return format;
@@ -290,10 +290,10 @@ void VulkanDevice::pickPhysicalDevice()
 	if (it == physicalDevices.end()) {
 		throw std::runtime_error("Failed to find a suitable GPU!");
 	} else {
-		physicalDevice_    = *it;
-		queueFamilyIndices = findQueueFamilies(physicalDevice_);
+		physicalDevice     = *it;
+		queueFamilyIndices = findQueueFamilies(physicalDevice);
 
-		vk::PhysicalDeviceProperties deviceProperties = physicalDevice_.getProperties();
+		vk::PhysicalDeviceProperties deviceProperties = physicalDevice.getProperties();
 		std::cout << "Selected GPU: " << deviceProperties.deviceName << std::endl;
 	}
 
@@ -339,7 +339,7 @@ void VulkanDevice::createLogicalDevice()
 	    .ppEnabledExtensionNames = deviceExtensions.data(),
 	};
 
-	device_ = vk::raii::Device(physicalDevice_, deviceCreateInfo);
+	device_ = vk::raii::Device(physicalDevice, deviceCreateInfo);
 
 	graphicsQueue_ = vk::raii::Queue(device_, queueFamilyIndices.graphicsFamily.value(), 0);
 	presentQueue_  = vk::raii::Queue(device_, queueFamilyIndices.presentFamily.value(), 0);
@@ -568,27 +568,10 @@ QueueFamilyIndices VulkanDevice::findQueueFamilies(vk::raii::PhysicalDevice cons
 SwapChainSupportDetails VulkanDevice::querySwapChainSupport(vk::raii::PhysicalDevice const &physicalDevice) const
 {
 	SwapChainSupportDetails details;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*physicalDevice, *surface_, &details.capabilities);
+	details.capabilities = physicalDevice.getSurfaceCapabilitiesKHR(*surface_);
+	details.formats      = physicalDevice.getSurfaceFormatsKHR(*surface_);
+	details.presentModes = physicalDevice.getSurfacePresentModesKHR(*surface_);
 
-	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, *surface_, &formatCount, nullptr);
-
-	if (formatCount != 0) {
-		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(*physicalDevice, *surface_, &formatCount, details.formats.data());
-	}
-
-	uint32_t presentModeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(*physicalDevice, *surface_, &presentModeCount, nullptr);
-
-	if (presentModeCount != 0) {
-		details.presentModes.resize(presentModeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(
-		    *physicalDevice,
-		    *surface_,
-		    &presentModeCount,
-		    details.presentModes.data());
-	}
 	return details;
 }
 

@@ -9,9 +9,9 @@ namespace mvr
 {
 
 struct SwapChainSupportDetails {
-	VkSurfaceCapabilitiesKHR        capabilities;
-	std::vector<VkSurfaceFormatKHR> formats;
-	std::vector<VkPresentModeKHR>   presentModes;
+	vk::SurfaceCapabilitiesKHR        capabilities;
+	std::vector<vk::SurfaceFormatKHR> formats;
+	std::vector<vk::PresentModeKHR>   presentModes;
 };
 
 struct QueueFamilyIndices {
@@ -49,13 +49,13 @@ class VulkanDevice
 	{
 		return commandPool;
 	}
-	VkDevice device()
+	vk::raii::Device &device()
 	{
-		return *device_;
+		return device_;
 	}
-	vk::raii::PhysicalDevice &physicalDevice()
+	Window &getWindow()
 	{
-		return physicalDevice_;
+		return window;
 	}
 	VkSurfaceKHR surface()
 	{
@@ -71,11 +71,11 @@ class VulkanDevice
 	}
 	SwapChainSupportDetails getSwapChainSupport()
 	{
-		return querySwapChainSupport(physicalDevice_);
+		return querySwapChainSupport(physicalDevice);
 	}
 	QueueFamilyIndices findPhysicalQueueFamilies()
 	{
-		return findQueueFamilies(physicalDevice_);
+		return findQueueFamilies(physicalDevice);
 	}
 
 	// Utilities
@@ -104,9 +104,9 @@ class VulkanDevice
 
   private:
 	vk::raii::Context                context;
-	vk::raii::Instance               instance        = nullptr;
-	vk::raii::DebugUtilsMessengerEXT debugMessenger  = nullptr;
-	vk::raii::PhysicalDevice         physicalDevice_ = nullptr;
+	vk::raii::Instance               instance       = nullptr;
+	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
+	vk::raii::PhysicalDevice         physicalDevice = nullptr;
 	Window                          &window;
 	VkCommandPool                    commandPool;
 
