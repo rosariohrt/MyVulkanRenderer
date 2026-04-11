@@ -2,11 +2,7 @@
 
 #include "vulkan_device.h"
 
-// vulkan headers
-#include <vulkan/vulkan.h>
-
 // std
-#include <string>
 #include <vector>
 
 namespace mvr
@@ -39,9 +35,9 @@ class SwapChain
 	{
 		return swapChainImages.size();
 	}
-	VkFormat getSwapChainImageFormat()
+	VkFormat getSwapChainSurfaceFormat()
 	{
-		return swapChainImageFormat;
+		return static_cast<VkFormat>(swapChainSurfaceFormat.format);
 	}
 	VkExtent2D getSwapChainExtent()
 	{
@@ -74,14 +70,20 @@ class SwapChain
 	void createSyncObjects();
 
 	// Helper functions
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-	    const std::vector<VkSurfaceFormatKHR> &availableFormats);
-	VkPresentModeKHR chooseSwapPresentMode(
-	    const std::vector<VkPresentModeKHR> &availablePresentModes);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
+	vk::SurfaceFormatKHR chooseSwapSurfaceFormat(
+	    std::vector<vk::SurfaceFormatKHR> const &availableFormats);
+	vk::PresentModeKHR chooseSwapPresentMode(
+	    const std::vector<vk::PresentModeKHR> &availablePresentModes);
+	vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
+	uint32_t     chooseSwapMinImageCount(const vk::SurfaceCapabilitiesKHR &capabilities);
 
-	VkFormat   swapChainImageFormat;
-	VkExtent2D swapChainExtent;
+	VulkanDevice &device;
+	VkExtent2D    windowExtent;
+
+	vk::raii::SwapchainKHR swapChain = nullptr;
+
+	vk::SurfaceFormatKHR swapChainSurfaceFormat;
+	vk::Extent2D         swapChainExtent;
 
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	VkRenderPass               renderPass;
@@ -89,13 +91,8 @@ class SwapChain
 	std::vector<VkImage>        depthImages;
 	std::vector<VkDeviceMemory> depthImageMemorys;
 	std::vector<VkImageView>    depthImageViews;
-	std::vector<VkImage>        swapChainImages;
+	std::vector<vk::Image>      swapChainImages;
 	std::vector<VkImageView>    swapChainImageViews;
-
-	VulkanDevice &device;
-	VkExtent2D    windowExtent;
-
-	VkSwapchainKHR swapChain;
 
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;

@@ -20,9 +20,11 @@ class Window
 	Window(const Window &)            = delete;
 	Window &operator=(const Window &) = delete;
 
-	bool       shouldClose();
-	VkExtent2D getExtent();
-	void       createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+	bool         shouldClose();
+	vk::Extent2D getExtent();
+	void         getFrameBufferSize(int *width, int *height);
+
+	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
   private:
 	GLFWwindow    *window;
