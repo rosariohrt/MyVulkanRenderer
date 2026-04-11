@@ -18,7 +18,7 @@ FirstApp::FirstApp()
 
 FirstApp::~FirstApp()
 {
-	vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(*device.device(), pipelineLayout, nullptr);
 }
 
 void FirstApp::run()
@@ -28,7 +28,7 @@ void FirstApp::run()
 		drawFrame();
 	}
 
-	vkDeviceWaitIdle(device.device());
+	vkDeviceWaitIdle(*device.device());
 }
 
 void FirstApp::loadModel()
@@ -51,7 +51,7 @@ void FirstApp::createPipelineLayout()
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 	pipelineLayoutInfo.pPushConstantRanges    = nullptr;
 
-	if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(*device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
 }
@@ -77,7 +77,7 @@ void FirstApp::createCommandBuffers()
 	allocInfo.commandPool        = device.getCommandPool();
 	allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-	if (vkAllocateCommandBuffers(device.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(*device.device(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate command buffers!");
 	}
 

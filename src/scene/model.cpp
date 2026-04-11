@@ -40,8 +40,8 @@ Model::Model(VulkanDevice &device, const std::vector<Vertex> &vertices) : device
 
 Model::~Model()
 {
-	vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
-	vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
+	vkDestroyBuffer(*device.device(), vertexBuffer, nullptr);
+	vkFreeMemory(*device.device(), vertexBufferMemory, nullptr);
 }
 
 void Model::bind(VkCommandBuffer commandBuffer)
@@ -68,9 +68,9 @@ void Model::createVertexBuffers(const std::vector<Vertex> &vertices)
 	                    vertexBufferMemory);
 
 	void *data;
-	vkMapMemory(device.device(), vertexBufferMemory, 0, bufferSize, 0, &data);
+	vkMapMemory(*device.device(), vertexBufferMemory, 0, bufferSize, 0, &data);
 	memcpy(data, vertices.data(), bufferSize);
-	vkUnmapMemory(device.device(), vertexBufferMemory);
+	vkUnmapMemory(*device.device(), vertexBufferMemory);
 }
 
 }        // namespace mvr
