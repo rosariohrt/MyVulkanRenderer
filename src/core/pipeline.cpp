@@ -21,9 +21,9 @@ Pipeline::Pipeline(VulkanDevice             &device,
 
 Pipeline::~Pipeline()
 {
-	vkDestroyShaderModule(device.device(), vertexShaderModule, nullptr);
-	vkDestroyShaderModule(device.device(), fragmentShaderModule, nullptr);
-	vkDestroyPipeline(device.device(), graphicsPipeline, nullptr);
+	vkDestroyShaderModule(*device.device(), vertexShaderModule, nullptr);
+	vkDestroyShaderModule(*device.device(), fragmentShaderModule, nullptr);
+	vkDestroyPipeline(*device.device(), graphicsPipeline, nullptr);
 }
 
 void Pipeline::bind(VkCommandBuffer commandBuffer)
@@ -189,7 +189,7 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	pipelineInfo.basePipelineIndex  = -1;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	if (vkCreateGraphicsPipelines(device.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+	if (vkCreateGraphicsPipelines(*device.device(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create graphics pipeline");
 	}
 }
@@ -201,7 +201,7 @@ void Pipeline::createShaderModule(const std::vector<char> &code, VkShaderModule 
 	createInfo.codeSize = code.size();
 	createInfo.pCode    = reinterpret_cast<const uint32_t *>(code.data());
 
-	if (vkCreateShaderModule(device.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
+	if (vkCreateShaderModule(*device.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create shader module");
 	}
 }
