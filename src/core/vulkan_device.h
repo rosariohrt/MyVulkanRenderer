@@ -27,6 +27,7 @@ struct QueueFamilyIndices {
 class VulkanDevice
 {
   public:
+	// Variables
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else
@@ -44,7 +45,18 @@ class VulkanDevice
 	VulkanDevice(VulkanDevice &&)            = delete;
 	VulkanDevice &operator=(VulkanDevice &&) = delete;
 
-	// Getters  (inline)
+	// Public Methods
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+	void            createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
+	VkCommandBuffer beginSingleTimeCommands();
+	void            endSingleTimeCommands(VkCommandBuffer commandBuffer);
+	void            copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+	void            copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+	void            createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
+
+	// Getters
 	VkCommandPool getCommandPool()
 	{
 		return commandPool;
@@ -78,54 +90,33 @@ class VulkanDevice
 		return findQueueFamilies(physicalDevice);
 	}
 
-	// Utilities
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-	VkFormat findSupportedFormat(
-	    const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-
-	// Buffer Helper Functions
-	void createBuffer(
-	    VkDeviceSize          size,
-	    VkBufferUsageFlags    usage,
-	    VkMemoryPropertyFlags properties,
-	    VkBuffer             &buffer,
-	    VkDeviceMemory       &bufferMemory);
-	VkCommandBuffer beginSingleTimeCommands();
-	void            endSingleTimeCommands(VkCommandBuffer commandBuffer);
-	void            copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	void            copyBufferToImage(
-	               VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
-
-	void createImageWithInfo(
-	    const VkImageCreateInfo &imageInfo,
-	    VkMemoryPropertyFlags    properties,
-	    VkImage                 &image,
-	    VkDeviceMemory          &imageMemory);
-
   private:
-	vk::raii::Context                context;
-	vk::raii::Instance               instance       = nullptr;
-	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
-	vk::raii::PhysicalDevice         physicalDevice = nullptr;
-	Window                          &window;
-	VkCommandPool                    commandPool;
-
-	vk::raii::Device     device_  = nullptr;
-	vk::raii::SurfaceKHR surface_ = nullptr;
-
-	vk::raii::Queue graphicsQueue_ = nullptr;
-	vk::raii::Queue presentQueue_  = nullptr;
-
-	// queue families indices
-	QueueFamilyIndices queueFamilyIndices;
+	// Variables
+	Window &window;
 
 	const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+
 #ifdef __APPLE__
 	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName, "VK_KHR_portability_subset"};
 #else
 	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName};
 #endif
 
+	QueueFamilyIndices queueFamilyIndices;
+
+	vk::raii::Context                context;
+	vk::raii::Instance               instance       = nullptr;
+	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
+	vk::raii::SurfaceKHR             surface_       = nullptr;
+	vk::raii::PhysicalDevice         physicalDevice = nullptr;
+	vk::raii::Device                 device_        = nullptr;
+
+	vk::raii::Queue graphicsQueue_ = nullptr;
+	vk::raii::Queue presentQueue_  = nullptr;
+
+	VkCommandPool commandPool;
+
+	// Private Init Methods
 	void createInstance();
 	void setupDebugMessenger();
 	void createSurface();
@@ -133,7 +124,7 @@ class VulkanDevice
 	void createLogicalDevice();
 	void createCommandPool();
 
-	// helper functions
+	// Helper Methods
 	void              populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
 	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	    vk::DebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,

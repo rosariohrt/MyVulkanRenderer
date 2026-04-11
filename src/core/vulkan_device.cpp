@@ -1,5 +1,4 @@
 #include "vulkan_device.h"
-#include "vulkan/vulkan.hpp"
 
 // std
 #include <algorithm>
@@ -13,9 +12,7 @@
 namespace mvr
 {
 
-// ==================================================
-// Public Functions
-// ==================================================
+// Constructor & Destructor
 
 VulkanDevice::VulkanDevice(Window &window) :
     window{window}
@@ -38,9 +35,7 @@ VulkanDevice::~VulkanDevice()
 	vkDestroyCommandPool(*device_, commandPool, nullptr);
 }
 
-// ==================================================
-// Utilities
-// ==================================================
+// Public Methods
 
 uint32_t VulkanDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
@@ -72,10 +67,6 @@ VkFormat VulkanDevice::findSupportedFormat(
 	}
 	throw std::runtime_error("failed to find supported format!");
 }
-
-// ==================================================
-// Buffer Helper Functions
-// ==================================================
 
 void VulkanDevice::createBuffer(
     VkDeviceSize          size,
@@ -211,9 +202,7 @@ void VulkanDevice::createImageWithInfo(
 	}
 }
 
-// ==================================================
-// Private Setup Functions
-// ==================================================
+// Private Init Methods
 
 void VulkanDevice::createInstance()
 {
@@ -360,9 +349,7 @@ void VulkanDevice::createCommandPool()
 	}
 }
 
-// ==================================================
-// Private Helper Functions
-// ==================================================
+// Helper Methods
 
 void VulkanDevice::populateDebugMessengerCreateInfo(
     vk::DebugUtilsMessengerCreateInfoEXT &debugInfo)
