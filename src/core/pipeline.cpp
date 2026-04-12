@@ -21,8 +21,6 @@ Pipeline::Pipeline(VulkanDevice             &device,
 
 Pipeline::~Pipeline()
 {
-	vkDestroyShaderModule(*device.device(), vertexShaderModule, nullptr);
-	vkDestroyShaderModule(*device.device(), fragmentShaderModule, nullptr);
 	vkDestroyPipeline(*device.device(), graphicsPipeline, nullptr);
 }
 
@@ -127,31 +125,22 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
                                       const std::string        &fragFilePath,
                                       const PipelineConfigInfo &configInfo)
 {
-	auto vertCode = readFile(vertFilePath);
-	auto fragCode = readFile(fragFilePath);
-
 	assert(configInfo.pipelineLayout != VK_NULL_HANDLE && "Cannot create pipeline with no layout provided");
 	assert(configInfo.renderPass != VK_NULL_HANDLE && "Cannot create pipeline with no render pass provided");
 
-	createShaderModule(vertCode, &vertexShaderModule);
-	createShaderModule(fragCode, &fragmentShaderModule);
+	vk::raii::ShaderModule vertexShaderModule   = createShaderModule(readFile(vertFilePath));
+	vk::raii::ShaderModule fragmentShaderModule = createShaderModule(readFile(fragFilePath));
 
-	VkPipelineShaderStageCreateInfo shaderStages[2];
-	shaderStages[0].sType               = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[0].stage               = VK_SHADER_STAGE_VERTEX_BIT;
-	shaderStages[0].module              = vertexShaderModule;
-	shaderStages[0].pName               = "main";
-	shaderStages[0].flags               = 0;
-	shaderStages[0].pNext               = nullptr;
-	shaderStages[0].pSpecializationInfo = nullptr;
+	vk::PipelineShaderStageCreateInfo vertShaderStageInfo = {
+	    .stage  = vk::ShaderStageFlagBits::eVertex,
+	    .module = vertexShaderModule,
+	    .pName  = "main"};
+	vk::PipelineShaderStageCreateInfo fragShaderStageInfo = {
+	    .stage  = vk::ShaderStageFlagBits::eFragment,
+	    .module = fragmentShaderModule,
+	    .pName  = "main"};
 
-	shaderStages[1].sType               = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[1].stage               = VK_SHADER_STAGE_FRAGMENT_BIT;
-	shaderStages[1].module              = fragmentShaderModule;
-	shaderStages[1].pName               = "main";
-	shaderStages[1].flags               = 0;
-	shaderStages[1].pNext               = nullptr;
-	shaderStages[1].pSpecializationInfo = nullptr;
+	vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 
 	auto                                 bindingDescriptions   = Model::Vertex::getBindingDescriptions();
 	auto                                 attributeDescriptions = Model::Vertex::getAttributeDescriptions();
@@ -172,7 +161,7 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipelineInfo.stageCount          = 2;
-	pipelineInfo.pStages             = shaderStages;
+	pipelineInfo.pStages             = *shaderStages;
 	pipelineInfo.pVertexInputState   = &vertexInputInfo;
 	pipelineInfo.pViewportState      = &viewportInfo;
 	pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
@@ -194,16 +183,16 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	}
 }
 
-void Pipeline::createShaderModule(const std::vector<char> &code, VkShaderModule *shaderModule)
+vk::raii::ShaderModule Pipeline::createShaderModule(const std::vector<char> &code)
 {
-	VkShaderModuleCreateInfo createInfo{};
-	createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.codeSize = code.size();
-	createInfo.pCode    = reinterpret_cast<const uint32_t *>(code.data());
+	vk::ShaderModuleCreateInfo createInfo = {
+	    .codeSize = code.size() * sizeof(char),
+	    .pCode    = reinterpret_cast<const uint32_t *>(code.data()),
+	};
 
-	if (vkCreateShaderModule(*device.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create shader module");
-	}
+	vk::raii::ShaderModule shaderModule(device.device(), createInfo);
+
+	return shaderModule;
 }
 
 }        // namespace mvr
