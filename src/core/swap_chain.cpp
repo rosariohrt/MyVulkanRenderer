@@ -1,8 +1,10 @@
 #include "swap_chain.h"
+#include "vulkan/vulkan.hpp"
 
 // std
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -27,11 +29,6 @@ SwapChain::SwapChain(VulkanDevice &device, VkExtent2D windowExtent) : device{dev
 
 SwapChain::~SwapChain()
 {
-	for (auto imageView : swapChainImageViews) {
-		vkDestroyImageView(*device.device(), imageView, nullptr);
-	}
-	swapChainImageViews.clear();
-
 	for (int i = 0; i < depthImages.size(); i++) {
 		vkDestroyImageView(*device.device(), depthImageViews[i], nullptr);
 		vkDestroyImage(*device.device(), depthImages[i], nullptr);
@@ -171,23 +168,16 @@ void SwapChain::createSwapChain()
 
 void SwapChain::createImageViews()
 {
-	swapChainImageViews.resize(swapChainImages.size());
-	for (size_t i = 0; i < swapChainImages.size(); i++) {
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image                           = swapChainImages[i];
-		viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format                          = static_cast<VkFormat>(swapChainSurfaceFormat.format);
-		viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-		viewInfo.subresourceRange.baseMipLevel   = 0;
-		viewInfo.subresourceRange.levelCount     = 1;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount     = 1;
+	assert(swapChainImageViews.empty());
 
-		if (vkCreateImageView(*device.device(), &viewInfo, nullptr, &swapChainImageViews[i]) !=
-		    VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture image view!");
-		}
+	vk::ImageViewCreateInfo imageviewCreateInfo = {
+	    .viewType         = vk::ImageViewType::e2D,
+	    .format           = swapChainSurfaceFormat.format,
+	    .subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
+
+	for (auto &image : swapChainImages) {
+		imageviewCreateInfo.image = image;
+		swapChainImageViews.emplace_back(device.device(), imageviewCreateInfo);
 	}
 }
 
@@ -306,7 +296,7 @@ void SwapChain::createFramebuffers()
 {
 	swapChainFramebuffers.resize(imageCount());
 	for (size_t i = 0; i < imageCount(); i++) {
-		std::array<VkImageView, 2> attachments = {swapChainImageViews[i], depthImageViews[i]};
+		std::array<VkImageView, 2> attachments = {*swapChainImageViews[i], depthImageViews[i]};
 
 		VkExtent2D              swapChainExtent = getSwapChainExtent();
 		VkFramebufferCreateInfo framebufferInfo = {};

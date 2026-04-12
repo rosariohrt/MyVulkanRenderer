@@ -36,7 +36,7 @@ class SwapChain
 	}
 	VkImageView getImageView(int index)
 	{
-		return swapChainImageViews[index];
+		return *swapChainImageViews[index];
 	}
 	size_t imageCount()
 	{
@@ -74,8 +74,8 @@ class SwapChain
 
 	vk::raii::SwapchainKHR swapChain = nullptr;
 
-	std::vector<vk::Image>   swapChainImages;
-	std::vector<VkImageView> swapChainImageViews;
+	std::vector<vk::Image>           swapChainImages;
+	std::vector<vk::raii::ImageView> swapChainImageViews;
 
 	VkRenderPass renderPass;
 
