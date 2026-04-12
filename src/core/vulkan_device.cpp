@@ -264,27 +264,26 @@ void VulkanDevice::pickPhysicalDevice()
 		throw std::runtime_error("Failed to find GPUs with Vulkan support!");
 	}
 
-	// Log all available physical devices
+	// Log all available physical devices and find the first suitable one
 	std::cout << "Device count: " << physicalDevices.size() << std::endl;
-	std::cout << "Available GPUs: " << std::endl;
-	for (const auto &device : physicalDevices) {
-		auto props = device.getProperties();
-		std::cout << "   " << props.deviceName << " (Type: " << to_string(props.deviceType) << ")" << std::endl;
+	std::cout << "Available GPUs:" << std::endl;
+	bool found = false;
+	for (const auto &candidate : physicalDevices) {
+		auto props = candidate.getProperties();
+		std::cout << "\t" << props.deviceName << " (Type: " << to_string(props.deviceType) << ")" << std::endl;
+
+		if (!found && isDeviceSuitable(candidate)) {
+			physicalDevice     = candidate;
+			queueFamilyIndices = findQueueFamilies(physicalDevice);
+			found              = true;
+		}
 	}
 
-	// Find the first suitable device
-	auto const it = std::ranges::find_if(physicalDevices, [&](auto const &physicalDevice) {
-		return isDeviceSuitable(physicalDevice);
-	});
-	if (it == physicalDevices.end()) {
+	if (!found) {
 		throw std::runtime_error("Failed to find a suitable GPU!");
-	} else {
-		physicalDevice     = *it;
-		queueFamilyIndices = findQueueFamilies(physicalDevice);
-
-		vk::PhysicalDeviceProperties deviceProperties = physicalDevice.getProperties();
-		std::cout << "Selected GPU: " << deviceProperties.deviceName << std::endl;
 	}
+
+	std::cout << "Selected GPU: " << physicalDevice.getProperties().deviceName << std::endl;
 
 	// TODO: Implement a scoring system to select the most suitable GPU.
 	// Currently, it picks the first one that meets the minimum requirements.
@@ -466,7 +465,7 @@ bool VulkanDevice::hasRequiredApiVersion(vk::raii::PhysicalDevice const &physica
 	// Check if the physicalDevice supports the Vulkan 1.3 API version
 	bool result = physicalDevice.getProperties().apiVersion >= VK_API_VERSION_1_3;
 	if (!result) {
-		std::cerr << " - Does not support Vulkan 1.3 API version" << std::endl;
+		std::cerr << "\t" << " - Does not support Vulkan 1.3 API version" << std::endl;
 	}
 
 	return result;
@@ -478,7 +477,7 @@ bool VulkanDevice::hasGraphicsSupport(vk::raii::PhysicalDevice const &physicalDe
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 	bool               result  = indices.isComplete();
 	if (!result) {
-		std::cerr << " - Missing required queue families" << std::endl;
+		std::cerr << "\t" << " - Missing required queue families" << std::endl;
 	}
 
 	return result;
@@ -497,7 +496,7 @@ bool VulkanDevice::hasRequiredExtensions(vk::raii::PhysicalDevice const &physica
 
 	bool result = std::ranges::all_of(deviceExtensions, isSupported);
 	if (!result) {
-		std::cerr << " - Missing required extensions" << std::endl;
+		std::cerr << "\t" << " - Missing required extensions" << std::endl;
 	}
 
 	return result;
@@ -514,7 +513,7 @@ bool VulkanDevice::hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalD
 	bool result = features.template get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering &&
 	              features.template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
 	if (!result) {
-		std::cerr << " - Does not support required features" << std::endl;
+		std::cerr << "\t" << " - Does not support required features" << std::endl;
 	}
 
 	return result;
@@ -525,7 +524,7 @@ bool VulkanDevice::hasSwapchainSupport(vk::raii::PhysicalDevice const &physicalD
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
 	bool                    result           = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 	if (!result) {
-		std::cerr << " - Does not support required swapchain support" << std::endl;
+		std::cerr << "\t" << " - Does not support required swapchain support" << std::endl;
 	}
 
 	return result;
