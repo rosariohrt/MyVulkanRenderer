@@ -7,27 +7,27 @@
 namespace mvr
 {
 
-std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptions()
+std::vector<vk::VertexInputBindingDescription> Model::Vertex::getBindingDescriptions()
 {
-	std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
+	std::vector<vk::VertexInputBindingDescription> bindingDescriptions(1);
 	bindingDescriptions[0].binding   = 0;
 	bindingDescriptions[0].stride    = sizeof(Vertex);
-	bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	bindingDescriptions[0].inputRate = vk::VertexInputRate::eVertex;
 
 	return bindingDescriptions;
 }
 
-std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions()
+std::vector<vk::VertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions()
 {
-	std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
+	std::vector<vk::VertexInputAttributeDescription> attributeDescriptions(2);
 	attributeDescriptions[0].binding  = 0;
 	attributeDescriptions[0].location = 0;
-	attributeDescriptions[0].format   = VK_FORMAT_R32G32_SFLOAT;
+	attributeDescriptions[0].format   = vk::Format::eR32G32Sfloat;
 	attributeDescriptions[0].offset   = offsetof(Vertex, position);
 
 	attributeDescriptions[1].binding  = 0;
 	attributeDescriptions[1].location = 1;
-	attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
+	attributeDescriptions[1].format   = vk::Format::eR32G32B32Sfloat;
 	attributeDescriptions[1].offset   = offsetof(Vertex, color);
 
 	return attributeDescriptions;

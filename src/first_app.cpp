@@ -1,4 +1,5 @@
 #include "first_app.h"
+#include "vulkan/vulkan.hpp"
 
 // std
 #include <array>
@@ -18,7 +19,6 @@ FirstApp::FirstApp()
 
 FirstApp::~FirstApp()
 {
-	vkDestroyPipelineLayout(*device.device(), pipelineLayout, nullptr);
 }
 
 void FirstApp::run()
@@ -44,23 +44,20 @@ void FirstApp::loadModel()
 
 void FirstApp::createPipelineLayout()
 {
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount         = 0;
-	pipelineLayoutInfo.pSetLayouts            = nullptr;
-	pipelineLayoutInfo.pushConstantRangeCount = 0;
-	pipelineLayoutInfo.pPushConstantRanges    = nullptr;
+	vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {
+	    .setLayoutCount         = 0,
+	    .pushConstantRangeCount = 0,
+	};
 
-	if (vkCreatePipelineLayout(*device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create pipeline layout!");
-	}
+	pipelineLayout = vk::raii::PipelineLayout(device.device(), pipelineLayoutInfo);
 }
 
 void FirstApp::createPipeline()
 {
-	auto pipelineConfig           = Pipeline::defaultPipelineConfigInfo(swapChain.width(), swapChain.height());
-	pipelineConfig.pipelineLayout = pipelineLayout;
-	pipelineConfig.renderPass     = swapChain.getRenderPass();
+	auto pipelineConfig           = Pipeline::defaultPipelineConfigInfo(swapChain.width(),
+	                                                                    swapChain.height(),
+	                                                                    swapChain.getSwapChainSurfaceFormat());
+	pipelineConfig.pipelineLayout = *pipelineLayout;
 	pipeline                      = std::make_unique<Pipeline>(device,
 	                                                           "../shaders/simple_shader.vert.spv",
 	                                                           "../shaders/simple_shader.frag.spv",

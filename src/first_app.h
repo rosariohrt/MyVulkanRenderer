@@ -32,7 +32,7 @@ class FirstApp
 	VulkanDevice                 device{window};
 	SwapChain                    swapChain{device, window.getExtent()};
 	std::unique_ptr<Pipeline>    pipeline;
-	VkPipelineLayout             pipelineLayout;
+	vk::raii::PipelineLayout     pipelineLayout = nullptr;
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::unique_ptr<Model>       model;
 

@@ -42,9 +42,9 @@ class SwapChain
 	{
 		return swapChainImages.size();
 	}
-	VkFormat getSwapChainSurfaceFormat()
+	vk::Format getSwapChainSurfaceFormat()
 	{
-		return static_cast<VkFormat>(swapChainSurfaceFormat.format);
+		return swapChainSurfaceFormat.format;
 	}
 	VkExtent2D getSwapChainExtent()
 	{

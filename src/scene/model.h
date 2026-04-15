@@ -21,8 +21,8 @@ class Model
 		glm::vec2 position;
 		glm::vec3 color;
 
-		static std::vector<VkVertexInputBindingDescription>   getBindingDescriptions();
-		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+		static std::vector<vk::VertexInputBindingDescription>   getBindingDescriptions();
+		static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions();
 	};
 
 	Model(VulkanDevice &device, const std::vector<Vertex> &vertices);

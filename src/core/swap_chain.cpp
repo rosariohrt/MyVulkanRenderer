@@ -11,6 +11,7 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
 namespace mvr
 {
@@ -198,7 +199,7 @@ void SwapChain::createRenderPass()
 	depthAttachmentRef.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format                  = getSwapChainSurfaceFormat();
+	colorAttachment.format                  = static_cast<VkFormat>(getSwapChainSurfaceFormat());
 	colorAttachment.samples                 = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachment.loadOp                  = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp                 = VK_ATTACHMENT_STORE_OP_STORE;
