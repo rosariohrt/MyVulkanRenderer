@@ -1,4 +1,5 @@
 #include "vulkan_device.h"
+#include "vulkan/vulkan.hpp"
 
 // std
 #include <algorithm>
@@ -28,11 +29,6 @@ VulkanDevice::VulkanDevice(Window &window) :
 		std::cerr << "VulkanDevice initialization aborted: " << e.what() << std::endl;
 		throw;
 	}
-}
-
-VulkanDevice::~VulkanDevice()
-{
-	vkDestroyCommandPool(*device_, commandPool, nullptr);
 }
 
 // Public Methods
@@ -105,7 +101,7 @@ VkCommandBuffer VulkanDevice::beginSingleTimeCommands()
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool        = commandPool;
+	allocInfo.commandPool        = *commandPool;
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer commandBuffer;
@@ -131,7 +127,7 @@ void VulkanDevice::endSingleTimeCommands(VkCommandBuffer commandBuffer)
 	vkQueueSubmit(*graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
 	vkQueueWaitIdle(*graphicsQueue_);
 
-	vkFreeCommandBuffers(*device_, commandPool, 1, &commandBuffer);
+	vkFreeCommandBuffers(*device_, *commandPool, 1, &commandBuffer);
 }
 
 void VulkanDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
@@ -335,17 +331,12 @@ void VulkanDevice::createLogicalDevice()
 
 void VulkanDevice::createCommandPool()
 {
-	QueueFamilyIndices queueFamilyIndices = findPhysicalQueueFamilies();
+	vk::CommandPoolCreateInfo poolInfo = {
+	    .flags            = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+	    .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value(),
+	};
 
-	VkCommandPoolCreateInfo poolInfo = {};
-	poolInfo.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.queueFamilyIndex        = queueFamilyIndices.graphicsFamily.value();
-	poolInfo.flags =
-	    VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-	if (vkCreateCommandPool(*device_, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create command pool!");
-	}
+	commandPool = vk::raii::CommandPool(device_, poolInfo);
 }
 
 // Helper Methods

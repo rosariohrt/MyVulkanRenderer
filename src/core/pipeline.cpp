@@ -34,11 +34,12 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t 
 
 	// inputAssembly
 	configInfo.inputAssembly = {
-	    .topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+	    .topology               = vk::PrimitiveTopology::eTriangleList,
 	    .primitiveRestartEnable = vk::False,
 	};
 	// viewport
 	configInfo.viewport = vk::PipelineViewportStateCreateInfo{
+	    // TODO: abbreviate this struct declaration
 	    .viewportCount = 1,
 	    .pViewports    = nullptr,
 	    .scissorCount  = 1,

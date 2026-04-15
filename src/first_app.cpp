@@ -1,5 +1,4 @@
 #include "first_app.h"
-#include "vulkan/vulkan.hpp"
 
 // std
 #include <array>

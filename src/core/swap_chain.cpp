@@ -1,5 +1,4 @@
 #include "swap_chain.h"
-#include "vulkan/vulkan.hpp"
 
 // std
 #include <algorithm>
@@ -11,7 +10,6 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
-#include <vulkan/vulkan_core.h>
 
 namespace mvr
 {

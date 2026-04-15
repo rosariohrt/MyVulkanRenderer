@@ -37,7 +37,6 @@ class VulkanDevice
 
 	// Constructor & Destructor
 	VulkanDevice(Window &window);
-	~VulkanDevice();
 
 	// Not copyable or movable
 	VulkanDevice(const VulkanDevice &)       = delete;
@@ -59,7 +58,7 @@ class VulkanDevice
 	// Getters
 	VkCommandPool getCommandPool()
 	{
-		return commandPool;
+		return *commandPool;
 	}
 	vk::raii::Device &device()
 	{
@@ -114,7 +113,7 @@ class VulkanDevice
 	vk::raii::Queue graphicsQueue_ = nullptr;
 	vk::raii::Queue presentQueue_  = nullptr;
 
-	VkCommandPool commandPool;
+	vk::raii::CommandPool commandPool = nullptr;
 
 	// Private Init Methods
 	void createInstance();
