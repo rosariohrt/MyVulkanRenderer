@@ -34,9 +34,13 @@ class SwapChain
 	{
 		return renderPass;
 	}
-	VkImageView getImageView(int index)
+	vk::Image getImage(uint32_t index)
 	{
-		return *swapChainImageViews[index];
+		return swapChainImages[index];
+	}
+	vk::raii::ImageView &getImageView(uint32_t index)
+	{
+		return swapChainImageViews[index];
 	}
 	size_t imageCount()
 	{
@@ -46,21 +50,27 @@ class SwapChain
 	{
 		return swapChainSurfaceFormat.format;
 	}
-	VkExtent2D getSwapChainExtent()
+	vk::Extent2D getSwapChainExtent()
 	{
 		return swapChainExtent;
-	}
-	uint32_t width()
-	{
-		return swapChainExtent.width;
-	}
-	uint32_t height()
-	{
-		return swapChainExtent.height;
 	}
 	float extentAspectRatio()
 	{
 		return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
+	}
+	vk::Viewport getViewport()
+	{
+		return vk::Viewport(
+		    0.0f,
+		    0.0f,
+		    static_cast<float>(swapChainExtent.width),
+		    static_cast<float>(swapChainExtent.height),
+		    0.0f,
+		    1.0f);
+	}
+	vk::Rect2D getScissor()
+	{
+		return vk::Rect2D(vk::Offset2D{0, 0}, swapChainExtent);
 	}
 
   private:
