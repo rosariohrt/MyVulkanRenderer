@@ -45,20 +45,19 @@ class VulkanDevice
 	VulkanDevice &operator=(VulkanDevice &&) = delete;
 
 	// Public Methods
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
-	void            createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
 	VkCommandBuffer beginSingleTimeCommands();
 	void            endSingleTimeCommands(VkCommandBuffer commandBuffer);
 	void            copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void            copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
-	void            createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
+	void            createImageWithInfo(const VkImageCreateInfo &imageInfo, vk::MemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
 
 	// Getters
-	VkCommandPool getCommandPool()
+	vk::raii::CommandPool &getCommandPool()
 	{
-		return *commandPool;
+		return commandPool;
 	}
 	vk::raii::Device &device()
 	{
