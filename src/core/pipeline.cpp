@@ -23,12 +23,12 @@ Pipeline::~Pipeline()
 {
 }
 
-void Pipeline::bind(VkCommandBuffer commandBuffer)
+void Pipeline::bind(const vk::raii::CommandBuffer &commandBuffer)
 {
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, *graphicsPipeline);
+	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *graphicsPipeline);
 }
 
-PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height, vk::Format format)
+PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 {
 	PipelineConfigInfo configInfo{};
 

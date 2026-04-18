@@ -37,8 +37,8 @@ class Pipeline
 	Pipeline(const Pipeline &)            = delete;
 	Pipeline &operator=(const Pipeline &) = delete;
 
-	void                      bind(VkCommandBuffer commandBuffer);
-	static PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height, vk::Format format);
+	void                      bind(const vk::raii::CommandBuffer &commandBuffer);
+	static PipelineConfigInfo defaultPipelineConfigInfo(vk::Format format);
 
   private:
 	static std::vector<char> readFile(const std::string &filePath);
