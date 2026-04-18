@@ -71,13 +71,13 @@ class VulkanDevice
 	{
 		return *surface_;
 	}
-	VkQueue graphicsQueue()
+	vk::raii::Queue &graphicsQueue()
 	{
-		return *graphicsQueue_;
+		return graphicsQueue_;
 	}
-	VkQueue presentQueue()
+	vk::raii::Queue &presentQueue()
 	{
-		return *presentQueue_;
+		return presentQueue_;
 	}
 	SwapChainSupportDetails getSwapChainSupport()
 	{

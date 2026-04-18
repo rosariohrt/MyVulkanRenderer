@@ -3,6 +3,7 @@
 #include "vulkan_device.h"
 
 // std
+#include <utility>
 #include <vector>
 
 namespace mvr
@@ -21,19 +22,10 @@ class SwapChain
 	void operator=(const SwapChain &) = delete;
 
 	// Public Methods
-	VkResult acquireNextImage(uint32_t *imageIndex);
-	VkResult submitCommandBuffers(const VkCommandBuffer *buffers, uint32_t *imageIndex);
-	VkFormat findDepthFormat();
+	std::pair<vk::Result, uint32_t> acquireNextImage(uint32_t frameIndex);
+	vk::Result                      submitCommandBuffers(const vk::raii::CommandBuffer &commandBuffer, uint32_t imageIndex, uint32_t frameIndex);
+	VkFormat                        findDepthFormat();
 
-	// Getters
-	VkFramebuffer getFrameBuffer(int index)
-	{
-		return swapChainFramebuffers[index];
-	}
-	VkRenderPass getRenderPass()
-	{
-		return renderPass;
-	}
 	vk::Image getImage(uint32_t index)
 	{
 		return swapChainImages[index];
@@ -80,32 +72,24 @@ class SwapChain
 
 	vk::SurfaceFormatKHR swapChainSurfaceFormat;
 	vk::Extent2D         swapChainExtent;
-	size_t               currentFrame = 0;
 
 	vk::raii::SwapchainKHR swapChain = nullptr;
 
 	std::vector<vk::Image>           swapChainImages;
 	std::vector<vk::raii::ImageView> swapChainImageViews;
 
-	VkRenderPass renderPass;
-
 	std::vector<VkImage>        depthImages;
 	std::vector<VkDeviceMemory> depthImageMemorys;
 	std::vector<VkImageView>    depthImageViews;
 
-	std::vector<VkFramebuffer> swapChainFramebuffers;
-
-	std::vector<VkSemaphore> imageAvailableSemaphores;
-	std::vector<VkSemaphore> renderFinishedSemaphores;
-	std::vector<VkFence>     inFlightFences;
-	std::vector<VkFence>     imagesInFlight;
+	std::vector<vk::raii::Semaphore> renderFinishedSemaphores;
+	std::vector<vk::raii::Semaphore> imageAvailableSemaphores;
+	std::vector<vk::raii::Fence>     inFlightFences;
 
 	// Private Init Methods
 	void createSwapChain();
 	void createImageViews();
-	void createRenderPass();
 	void createDepthResources();
-	void createFramebuffers();
 	void createSyncObjects();
 
 	// Helper Methods

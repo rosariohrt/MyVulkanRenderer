@@ -1,5 +1,4 @@
 #include "vulkan_device.h"
-#include "vulkan/vulkan.hpp"
 
 // std
 #include <algorithm>

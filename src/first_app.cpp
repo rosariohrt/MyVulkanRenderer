@@ -1,10 +1,8 @@
 #include "first_app.h"
 
 // std
-#include <array>
 #include <cstdint>
 #include <stdexcept>
-#include <vulkan/vulkan_core.h>
 
 namespace mvr
 {
@@ -165,18 +163,27 @@ void FirstApp::transitionImageLayout(
 
 void FirstApp::drawFrame()
 {
-	uint32_t imageIndex;
-	auto     result = swapChain.acquireNextImage(&imageIndex);
+	auto [result, imageIndex] = swapChain.acquireNextImage(frameIndex);
 
-	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+	if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
 		throw std::runtime_error("failed to acquire swap chain image!");
 	}
 
-	VkCommandBuffer rawCommandBuffer = *commandBuffers[imageIndex];
-	result                           = swapChain.submitCommandBuffers(&rawCommandBuffer, &imageIndex);
-	if (result != VK_SUCCESS) {
-		throw std::runtime_error("failed to submit command buffer!");
+	commandBuffers[frameIndex].reset();
+	recordCommandBuffer(imageIndex);
+
+	result = swapChain.submitCommandBuffers(commandBuffers[frameIndex], imageIndex, frameIndex);
+	switch (result) {
+		case vk::Result::eSuccess:
+			break;
+		case vk::Result::eSuboptimalKHR:
+			// Optionally handle suboptimal swap chain
+			break;
+		default:
+			throw std::runtime_error("failed to present swap chain image!");
 	}
+
+	frameIndex = (frameIndex + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
 }
 
 }        // namespace mvr

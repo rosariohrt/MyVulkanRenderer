@@ -5,7 +5,6 @@
 #include "core/vulkan_device.h"
 #include "core/window.h"
 #include "scene/model.h"
-#include "vulkan/vulkan.hpp"
 
 // std
 #include <cstdint>
