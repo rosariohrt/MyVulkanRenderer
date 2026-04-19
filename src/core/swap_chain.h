@@ -52,17 +52,21 @@ class SwapChain
 	}
 	vk::Viewport getViewport()
 	{
-		return vk::Viewport(
-		    0.0f,
-		    0.0f,
-		    static_cast<float>(swapChainExtent.width),
-		    static_cast<float>(swapChainExtent.height),
-		    0.0f,
-		    1.0f);
+		return vk::Viewport{
+		    .x        = 0.0f,
+		    .y        = 0.0f,
+		    .width    = static_cast<float>(swapChainExtent.width),
+		    .height   = static_cast<float>(swapChainExtent.height),
+		    .minDepth = 0.0f,
+		    .maxDepth = 1.0f,
+		};
 	}
 	vk::Rect2D getScissor()
 	{
-		return vk::Rect2D(vk::Offset2D{0, 0}, swapChainExtent);
+		return vk::Rect2D{
+		    .offset = {0, 0},
+		    .extent = swapChainExtent,
+		};
 	}
 
   private:
