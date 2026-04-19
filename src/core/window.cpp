@@ -22,15 +22,20 @@ bool Window::shouldClose()
 	return glfwWindowShouldClose(window);
 }
 
-VkExtent2D Window::getExtent()
+vk::Extent2D Window::getExtent()
 {
 	return {width, height};
+}
+
+void Window::getFrameBufferSize(int *width, int *height)
+{
+	glfwGetFramebufferSize(window, width, height);
 }
 
 void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface)
 {
 	if (glfwCreateWindowSurface(instance, window, nullptr, surface) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create window surface");
+		throw std::runtime_error("Failed to create window surface!");
 	}
 }
 

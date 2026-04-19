@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/vulkan_device.h"
-#include <vulkan/vulkan_core.h>
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -21,24 +20,47 @@ class Model
 		glm::vec2 position;
 		glm::vec3 color;
 
-		static std::vector<VkVertexInputBindingDescription>   getBindingDescriptions();
-		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+		static std::vector<vk::VertexInputBindingDescription> getBindingDescriptions()
+		{
+			return {
+			    {
+			        .binding   = 0,
+			        .stride    = sizeof(Vertex),
+			        .inputRate = vk::VertexInputRate::eVertex,
+			    },
+			};
+		}
+		static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions()
+		{
+			return {
+			    {
+			        .location = 0,
+			        .binding  = 0,
+			        .format   = vk::Format::eR32G32Sfloat,
+			        .offset   = offsetof(Vertex, position),
+			    },
+			    {
+			        .location = 1,
+			        .binding  = 0,
+			        .format   = vk::Format::eR32G32B32Sfloat,
+			        .offset   = offsetof(Vertex, color),
+			    },
+			};
+		}
 	};
 
 	Model(VulkanDevice &device, const std::vector<Vertex> &vertices);
-	~Model();
-
 	Model(const Model &)            = delete;
 	Model &operator=(const Model &) = delete;
 
-	void bind(VkCommandBuffer commandBuffer);
-	void draw(VkCommandBuffer commandBuffer);
+	void bind(vk::CommandBuffer commandBuffer);
+	void draw(vk::CommandBuffer commandBuffer);
 
   private:
-	VulkanDevice  &device;
-	VkBuffer       vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
-	uint32_t       vertexCount;
+	VulkanDevice          &device;
+	vk::raii::Buffer       vertexBuffer       = nullptr;
+	vk::raii::DeviceMemory vertexBufferMemory = nullptr;
+	uint32_t               vertexCount;
 
 	void createVertexBuffers(const std::vector<Vertex> &vertices);
 };

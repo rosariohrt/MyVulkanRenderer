@@ -2,41 +2,41 @@
 
 #include "window.h"
 
-// std lib headers
-#include <string>
+// std
 #include <vector>
 
 namespace mvr
 {
 
 struct SwapChainSupportDetails {
-	VkSurfaceCapabilitiesKHR        capabilities;
-	std::vector<VkSurfaceFormatKHR> formats;
-	std::vector<VkPresentModeKHR>   presentModes;
+	vk::SurfaceCapabilitiesKHR        capabilities;
+	std::vector<vk::SurfaceFormatKHR> formats;
+	std::vector<vk::PresentModeKHR>   presentModes;
 };
 
 struct QueueFamilyIndices {
-	uint32_t graphicsFamily;
-	uint32_t presentFamily;
-	bool     graphicsFamilyHasValue = false;
-	bool     presentFamilyHasValue  = false;
-	bool     isComplete()
+	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
+	// TODO: std::optional<uint32_t> computeFamily;
+	bool isComplete()
 	{
-		return graphicsFamilyHasValue && presentFamilyHasValue;
+		return graphicsFamily.has_value() && presentFamily.has_value();
 	}
 };
 
 class VulkanDevice
 {
   public:
+	// Variables
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else
-	const bool                      enableValidationLayers = true;
+	const bool enableValidationLayers = true;
 #endif
+	VkPhysicalDeviceProperties properties;
 
+	// Constructor & Destructor
 	VulkanDevice(Window &window);
-	~VulkanDevice();
 
 	// Not copyable or movable
 	VulkanDevice(const VulkanDevice &)       = delete;
@@ -44,61 +44,77 @@ class VulkanDevice
 	VulkanDevice(VulkanDevice &&)            = delete;
 	VulkanDevice &operator=(VulkanDevice &&) = delete;
 
-	VkCommandPool getCommandPool()
+	// Public Methods
+	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
+	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+	VkCommandBuffer beginSingleTimeCommands();
+	void            endSingleTimeCommands(VkCommandBuffer commandBuffer);
+	void            copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+	void            copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+	void            createImageWithInfo(const VkImageCreateInfo &imageInfo, vk::MemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
+
+	// Getters
+	vk::raii::CommandPool &getCommandPool()
 	{
 		return commandPool;
 	}
-	VkDevice device()
+	vk::raii::Device &device()
 	{
 		return device_;
 	}
+	Window &getWindow()
+	{
+		return window;
+	}
 	VkSurfaceKHR surface()
 	{
-		return surface_;
+		return *surface_;
 	}
-	VkQueue graphicsQueue()
+	vk::raii::Queue &graphicsQueue()
 	{
 		return graphicsQueue_;
 	}
-	VkQueue presentQueue()
+	vk::raii::Queue &presentQueue()
 	{
 		return presentQueue_;
 	}
-
 	SwapChainSupportDetails getSwapChainSupport()
 	{
 		return querySwapChainSupport(physicalDevice);
 	}
-	uint32_t           findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	QueueFamilyIndices findPhysicalQueueFamilies()
 	{
 		return findQueueFamilies(physicalDevice);
 	}
-	VkFormat findSupportedFormat(
-	    const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-
-	// Buffer Helper Functions
-	void createBuffer(
-	    VkDeviceSize          size,
-	    VkBufferUsageFlags    usage,
-	    VkMemoryPropertyFlags properties,
-	    VkBuffer             &buffer,
-	    VkDeviceMemory       &bufferMemory);
-	VkCommandBuffer beginSingleTimeCommands();
-	void            endSingleTimeCommands(VkCommandBuffer commandBuffer);
-	void            copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	void            copyBufferToImage(
-	               VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
-
-	void createImageWithInfo(
-	    const VkImageCreateInfo &imageInfo,
-	    VkMemoryPropertyFlags    properties,
-	    VkImage                 &image,
-	    VkDeviceMemory          &imageMemory);
-
-	VkPhysicalDeviceProperties properties;
 
   private:
+	// Variables
+	Window &window;
+
+	const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+
+#ifdef __APPLE__
+	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName, "VK_KHR_portability_subset"};
+#else
+	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName};
+#endif
+
+	QueueFamilyIndices queueFamilyIndices;
+
+	vk::raii::Context                context;
+	vk::raii::Instance               instance       = nullptr;
+	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
+	vk::raii::SurfaceKHR             surface_       = nullptr;
+	vk::raii::PhysicalDevice         physicalDevice = nullptr;
+	vk::raii::Device                 device_        = nullptr;
+
+	vk::raii::Queue graphicsQueue_ = nullptr;
+	vk::raii::Queue presentQueue_  = nullptr;
+
+	vk::raii::CommandPool commandPool = nullptr;
+
+	// Private Init Methods
 	void createInstance();
 	void setupDebugMessenger();
 	void createSurface();
@@ -106,33 +122,23 @@ class VulkanDevice
 	void createLogicalDevice();
 	void createCommandPool();
 
-	// helper functions
-	bool                      isDeviceSuitable(VkPhysicalDevice device);
+	// Helper Methods
+	void              populateDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT &createInfo);
+	static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
+	    vk::DebugUtilsMessageSeverityFlagBitsEXT      messageSeverity,
+	    vk::DebugUtilsMessageTypeFlagsEXT             messageType,
+	    const vk::DebugUtilsMessengerCallbackDataEXT *pCallbackData,
+	    void                                         *pUserData);
+	std::vector<const char *> getRequiredLayers();
 	std::vector<const char *> getRequiredExtensions();
-	bool                      checkValidationLayerSupport();
-	QueueFamilyIndices        findQueueFamilies(VkPhysicalDevice device);
-	void                      populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-	void                      hasGflwRequiredInstanceExtensions();
-	bool                      checkDeviceExtensionSupport(VkPhysicalDevice device);
-	SwapChainSupportDetails   querySwapChainSupport(VkPhysicalDevice device);
-
-	VkInstance               instance;
-	VkDebugUtilsMessengerEXT debugMessenger;
-	VkPhysicalDevice         physicalDevice = VK_NULL_HANDLE;
-	Window                  &window;
-	VkCommandPool            commandPool;
-
-	VkDevice     device_;
-	VkSurfaceKHR surface_;
-	VkQueue      graphicsQueue_;
-	VkQueue      presentQueue_;
-
-	const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-#ifdef __APPLE__
-	const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, "VK_KHR_portability_subset"};
-#else
-	const std::vector<const char *> deviceExtensions       = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-#endif
+	bool                      isDeviceSuitable(vk::raii::PhysicalDevice const &physicalDevice);
+	bool                      hasRequiredApiVersion(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool                      hasGraphicsSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool                      hasRequiredExtensions(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool                      hasRequiredFeatures(vk::raii::PhysicalDevice const &physicalDevice) const;
+	bool                      hasSwapchainSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
+	QueueFamilyIndices        findQueueFamilies(vk::raii::PhysicalDevice const &physicalDevice) const;
+	SwapChainSupportDetails   querySwapChainSupport(vk::raii::PhysicalDevice const &physicalDevice) const;
 };
 
 }        // namespace mvr

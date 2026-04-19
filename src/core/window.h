@@ -1,9 +1,11 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#define GLFW_INCLUDE_NONE
+#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
+#include <vulkan/vulkan_raii.hpp>
+
 #include <GLFW/glfw3.h>
 
+// std
 #include <string>
 
 namespace mvr
@@ -18,9 +20,11 @@ class Window
 	Window(const Window &)            = delete;
 	Window &operator=(const Window &) = delete;
 
-	bool       shouldClose();
-	VkExtent2D getExtent();
-	void       createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+	bool         shouldClose();
+	vk::Extent2D getExtent();
+	void         getFrameBufferSize(int *width, int *height);
+
+	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
   private:
 	GLFWwindow    *window;

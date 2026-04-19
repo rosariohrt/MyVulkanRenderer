@@ -10,17 +10,19 @@ namespace mvr
 {
 
 struct PipelineConfigInfo {
-	VkViewport                             viewport;
-	VkRect2D                               scissor;
-	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
-	VkPipelineRasterizationStateCreateInfo rasterizationInfo;
-	VkPipelineMultisampleStateCreateInfo   multisampleInfo;
-	VkPipelineColorBlendAttachmentState    colorBlendAttachment;
-	VkPipelineColorBlendStateCreateInfo    colorBlendInfo;
-	VkPipelineDepthStencilStateCreateInfo  depthStencilInfo;
-	VkPipelineLayout                       pipelineLayout = VK_NULL_HANDLE;
-	VkRenderPass                           renderPass     = VK_NULL_HANDLE;
-	uint32_t                               subpass        = 0;
+	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+	vk::PipelineViewportStateCreateInfo      viewport;
+	vk::PipelineRasterizationStateCreateInfo rasterization;
+	vk::PipelineMultisampleStateCreateInfo   multisample;
+	vk::PipelineDepthStencilStateCreateInfo  depthStencil;
+	vk::PipelineColorBlendAttachmentState    colorBlendAttachment;
+	vk::PipelineColorBlendStateCreateInfo    colorBlend;
+	std::vector<vk::Format>                  colorAttachmentFormats;
+
+	vk::PipelineLayout pipelineLayout;
+
+	std::vector<vk::DynamicState>      dynamicStates;
+	vk::PipelineDynamicStateCreateInfo dynamicStateInfo;
 };
 
 class Pipeline
@@ -35,20 +37,18 @@ class Pipeline
 	Pipeline(const Pipeline &)            = delete;
 	Pipeline &operator=(const Pipeline &) = delete;
 
-	void                      bind(VkCommandBuffer commandBuffer);
-	static PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height);
+	void                      bind(const vk::raii::CommandBuffer &commandBuffer);
+	static PipelineConfigInfo defaultPipelineConfigInfo(vk::Format format);
 
   private:
 	static std::vector<char> readFile(const std::string &filePath);
+	vk::raii::ShaderModule   createShaderModule(const std::vector<char> &code);
 	void                     createGraphicsPipeline(const std::string        &vertFilePath,
 	                                                const std::string        &fragFilePath,
 	                                                const PipelineConfigInfo &configInfo);
-	void                     createShaderModule(const std::vector<char> &code, VkShaderModule *shaderModule);
 
-	VulkanDevice  &device;
-	VkPipeline     graphicsPipeline;
-	VkShaderModule vertexShaderModule;
-	VkShaderModule fragmentShaderModule;
+	VulkanDevice      &device;
+	vk::raii::Pipeline graphicsPipeline = nullptr;
 };
 
 }        // namespace mvr

@@ -7,70 +7,47 @@
 namespace mvr
 {
 
-std::vector<VkVertexInputBindingDescription> Model::Vertex::getBindingDescriptions()
-{
-	std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
-	bindingDescriptions[0].binding   = 0;
-	bindingDescriptions[0].stride    = sizeof(Vertex);
-	bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-	return bindingDescriptions;
-}
-
-std::vector<VkVertexInputAttributeDescription> Model::Vertex::getAttributeDescriptions()
-{
-	std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
-	attributeDescriptions[0].binding  = 0;
-	attributeDescriptions[0].location = 0;
-	attributeDescriptions[0].format   = VK_FORMAT_R32G32_SFLOAT;
-	attributeDescriptions[0].offset   = offsetof(Vertex, position);
-
-	attributeDescriptions[1].binding  = 0;
-	attributeDescriptions[1].location = 1;
-	attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
-	attributeDescriptions[1].offset   = offsetof(Vertex, color);
-
-	return attributeDescriptions;
-}
-
 Model::Model(VulkanDevice &device, const std::vector<Vertex> &vertices) : device{device}
 {
 	createVertexBuffers(vertices);
 }
 
-Model::~Model()
+void Model::bind(vk::CommandBuffer commandBuffer)
 {
-	vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
-	vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
+	commandBuffer.bindVertexBuffers(0, *vertexBuffer, {0});
 }
 
-void Model::bind(VkCommandBuffer commandBuffer)
+void Model::draw(vk::CommandBuffer commandBuffer)
 {
-	VkBuffer     buffers[] = {vertexBuffer};
-	VkDeviceSize offsets[] = {0};
-	vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
-}
-
-void Model::draw(VkCommandBuffer commandBuffer)
-{
-	vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
+	commandBuffer.draw(vertexCount, 1, 0, 0);
 }
 
 void Model::createVertexBuffers(const std::vector<Vertex> &vertices)
 {
 	vertexCount = static_cast<uint32_t>(vertices.size());
-	assert(vertexCount >= 3 && "vertex count must be at least 3");
-	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
-	device.createBuffer(bufferSize,
-	                    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-	                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-	                    vertexBuffer,
-	                    vertexBufferMemory);
 
-	void *data;
-	vkMapMemory(device.device(), vertexBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, vertices.data(), bufferSize);
-	vkUnmapMemory(device.device(), vertexBufferMemory);
+	vk::BufferCreateInfo bufferInfo = {
+	    .size        = sizeof(vertices[0]) * vertices.size(),
+	    .usage       = vk::BufferUsageFlagBits::eVertexBuffer,
+	    .sharingMode = vk::SharingMode::eExclusive,
+	};
+
+	vertexBuffer = vk::raii::Buffer(device.device(), bufferInfo);
+
+	vk::MemoryRequirements memRequirements = vertexBuffer.getMemoryRequirements();
+	vk::MemoryAllocateInfo memAllocateInfo = {
+	    .allocationSize  = memRequirements.size,
+	    .memoryTypeIndex = device.findMemoryType(
+	        memRequirements.memoryTypeBits,
+	        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent),
+	};
+	vertexBufferMemory = vk::raii::DeviceMemory(device.device(), memAllocateInfo);
+
+	vertexBuffer.bindMemory(*vertexBufferMemory, 0);
+
+	void *data = vertexBufferMemory.mapMemory(0, bufferInfo.size);
+	memcpy(data, vertices.data(), bufferInfo.size);
+	vertexBufferMemory.unmapMemory();
 }
 
 }        // namespace mvr
