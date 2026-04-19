@@ -276,9 +276,9 @@ void VulkanDevice::createLogicalDevice()
 	    vk::PhysicalDeviceVulkan13Features,
 	    vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
 	    featureChain = {
-	        {},                                   // vk::PhysicalDeviceFeatures2 (empty for now)
-	        {.dynamicRendering = true},           // Enable dynamic rendering from Vulkan 1.3
-	        {.extendedDynamicState = true}        // Enable extended dynamic state from the extension
+	        {},                                          // vk::PhysicalDeviceFeatures2 (empty for now)
+	        {.synchronization2 = true, .dynamicRendering = true}, // Enable sync2 and dynamic rendering
+	        {.extendedDynamicState = true}               // Enable extended dynamic state from the extension
 	    };
 
 	vk::DeviceCreateInfo deviceCreateInfo = {

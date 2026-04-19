@@ -26,7 +26,7 @@ void FirstApp::run()
 		drawFrame();
 	}
 
-	vkDeviceWaitIdle(*device.device());
+	device.device().waitIdle();
 }
 
 void FirstApp::loadModel()
@@ -86,7 +86,7 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	    vk::PipelineStageFlagBits2::eColorAttachmentOutput         // dstStage
 	);
 
-	vk::ClearValue              clearColor     = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+	vk::ClearValue              clearColor     = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
 	vk::RenderingAttachmentInfo attachmentInfo = {
 	    .imageView   = swapChain.getImageView(imageIndex),
 	    .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,

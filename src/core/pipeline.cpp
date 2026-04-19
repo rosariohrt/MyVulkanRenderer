@@ -51,7 +51,7 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	    .rasterizerDiscardEnable = vk::False,
 	    .polygonMode             = vk::PolygonMode::eFill,
 	    .cullMode                = vk::CullModeFlagBits::eBack,
-	    .frontFace               = vk::FrontFace::eCounterClockwise,
+	    .frontFace               = vk::FrontFace::eClockwise,
 	    .depthBiasEnable         = vk::False,
 	    .depthBiasConstantFactor = 0.0f,        // optional
 	    .depthBiasClamp          = 0.0f,        // optional
@@ -102,11 +102,8 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	    .pAttachments    = &configInfo.colorBlendAttachment,
 	    .blendConstants  = blendConstants,
 	};
-	// rendering
-	configInfo.rendering = {
-	    .colorAttachmentCount    = 1,
-	    .pColorAttachmentFormats = &format,
-	};
+	// rendering formats
+	configInfo.colorAttachmentFormats = {format};
 
 	// dynamicState
 	configInfo.dynamicStates = {
@@ -187,8 +184,8 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	        .layout              = configInfo.pipelineLayout,
 	    },
 	    {
-	        .colorAttachmentCount    = configInfo.rendering.colorAttachmentCount,
-	        .pColorAttachmentFormats = configInfo.rendering.pColorAttachmentFormats,
+	        .colorAttachmentCount    = static_cast<uint32_t>(configInfo.colorAttachmentFormats.size()),
+	        .pColorAttachmentFormats = configInfo.colorAttachmentFormats.data(),
 	    }};
 
 	graphicsPipeline = vk::raii::Pipeline(device.device(), nullptr, pipelineInfoChain.get<vk::GraphicsPipelineCreateInfo>());

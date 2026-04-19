@@ -17,7 +17,7 @@ struct PipelineConfigInfo {
 	vk::PipelineDepthStencilStateCreateInfo  depthStencil;
 	vk::PipelineColorBlendAttachmentState    colorBlendAttachment;
 	vk::PipelineColorBlendStateCreateInfo    colorBlend;
-	vk::PipelineRenderingCreateInfo          rendering;
+	std::vector<vk::Format>                  colorAttachmentFormats;
 
 	vk::PipelineLayout pipelineLayout;
 
