@@ -80,7 +80,7 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	    imageIndex,
 	    vk::ImageLayout::eUndefined,
 	    vk::ImageLayout::eColorAttachmentOptimal,
-	    vk::AccessFlagBits2{},                                     // srcAccessMask
+	    vk::AccessFlagBits2::eNone,                                // srcAccessMask
 	    vk::AccessFlagBits2::eColorAttachmentWrite,                // dstAccessMask
 	    vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // srcStage
 	    vk::PipelineStageFlagBits2::eColorAttachmentOutput         // dstStage
@@ -116,7 +116,7 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	    vk::ImageLayout::eColorAttachmentOptimal,
 	    vk::ImageLayout::ePresentSrcKHR,
 	    vk::AccessFlagBits2::eColorAttachmentWrite,                // srcAccessMask
-	    vk::AccessFlagBits2{},                                     // dstAccessMask
+	    vk::AccessFlagBits2::eNone,                                // dstAccessMask
 	    vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // srcStage
 	    vk::PipelineStageFlagBits2::eBottomOfPipe                  // dstStage
 	);
