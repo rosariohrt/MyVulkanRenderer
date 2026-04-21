@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <vulkan/vulkan.hpp>
 
 namespace mvr
 {
@@ -69,8 +70,8 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	};
 	// depthStencilInfo
 	configInfo.depthStencil = {
-	    .depthTestEnable       = vk::True,
-	    .depthWriteEnable      = vk::True,
+	    .depthTestEnable       = vk::False,
+	    .depthWriteEnable      = vk::False,
 	    .depthCompareOp        = vk::CompareOp::eLess,
 	    .depthBoundsTestEnable = vk::False,
 	    .stencilTestEnable     = vk::False,
