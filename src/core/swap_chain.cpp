@@ -50,14 +50,14 @@ vk::Result SwapChain::submitCommandBuffers(const vk::raii::CommandBuffer &comman
 {
 	vk::PipelineStageFlags waitDestinationStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
 	const vk::SubmitInfo   submitInfo{
-	    .waitSemaphoreCount   = 1,
-	    .pWaitSemaphores      = &*imageAvailableSemaphores[frameIndex],
-	    .pWaitDstStageMask    = &waitDestinationStageMask,
-	    .commandBufferCount   = 1,
-	    .pCommandBuffers      = &*commandBuffer,
-	    .signalSemaphoreCount = 1,
-	    .pSignalSemaphores    = &*renderFinishedSemaphores[imageIndex]
-	};
+	      .waitSemaphoreCount   = 1,
+	      .pWaitSemaphores      = &*imageAvailableSemaphores[frameIndex],
+	      .pWaitDstStageMask    = &waitDestinationStageMask,
+	      .commandBufferCount   = 1,
+	      .pCommandBuffers      = &*commandBuffer,
+	      .signalSemaphoreCount = 1,
+	      .pSignalSemaphores    = &*renderFinishedSemaphores[imageIndex],
+    };
 
 	device.graphicsQueue().submit(submitInfo, *inFlightFences[frameIndex]);
 
@@ -66,7 +66,7 @@ vk::Result SwapChain::submitCommandBuffers(const vk::raii::CommandBuffer &comman
 	    .pWaitSemaphores    = &*renderFinishedSemaphores[imageIndex],
 	    .swapchainCount     = 1,
 	    .pSwapchains        = &*swapChain,
-	    .pImageIndices      = &imageIndex
+	    .pImageIndices      = &imageIndex,
 	};
 
 	return device.presentQueue().presentKHR(presentInfoKHR);
@@ -109,8 +109,13 @@ void SwapChain::createSwapChain()
 	uint32_t           queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
 	if (indices.graphicsFamily != indices.presentFamily) {
-		swapChainCreateInfo.imageSharingMode    = vk::SharingMode::eConcurrent;
-		swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+		swapChainCreateInfo.imageSharingMode      = vk::SharingMode::eConcurrent;
+		swapChainCreateInfo.queueFamilyIndexCount = 2;
+		swapChainCreateInfo.pQueueFamilyIndices   = queueFamilyIndices;
+	} else {
+		swapChainCreateInfo.imageSharingMode      = vk::SharingMode::eExclusive;
+		swapChainCreateInfo.queueFamilyIndexCount = 0;              // Optional
+		swapChainCreateInfo.pQueueFamilyIndices   = nullptr;        // Optional
 	}
 
 	swapChain       = vk::raii::SwapchainKHR(device.device(), swapChainCreateInfo);
@@ -241,7 +246,7 @@ vk::Extent2D SwapChain::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capab
 uint32_t SwapChain::chooseSwapMinImageCount(const vk::SurfaceCapabilitiesKHR &capabilities)
 {
 	auto minImageCount = std::max(3u, capabilities.minImageCount);
-	if (capabilities.maxImageCount > 0 && minImageCount > capabilities.maxImageCount) {
+	if ((capabilities.maxImageCount > 0) && (minImageCount > capabilities.maxImageCount)) {
 		return capabilities.maxImageCount;
 	}
 
