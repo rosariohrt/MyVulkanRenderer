@@ -3,6 +3,7 @@
 #include "window.h"
 
 // std
+#include <optional>
 #include <vector>
 
 namespace mvr
@@ -92,7 +93,10 @@ class VulkanDevice
 	// Variables
 	Window &window;
 
-	const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
+	const std::vector<const char *> validationLayers = {
+	    "VK_LAYER_KHRONOS_validation",
+	    "VK_LAYER_LUNARG_crash_diagnostic",
+	};
 
 #ifdef __APPLE__
 	const std::vector<const char *> deviceExtensions = {vk::KHRSwapchainExtensionName, "VK_KHR_portability_subset"};
