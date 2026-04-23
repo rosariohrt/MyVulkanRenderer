@@ -95,7 +95,7 @@ class VulkanDevice
 
 	const std::vector<const char *> validationLayers = {
 	    "VK_LAYER_KHRONOS_validation",
-	    "VK_LAYER_LUNARG_crash_diagnostic",
+	    // "VK_LAYER_LUNARG_crash_diagnostic",
 	};
 
 #ifdef __APPLE__

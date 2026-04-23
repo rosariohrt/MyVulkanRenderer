@@ -14,7 +14,7 @@ namespace mvr
 
 // Constructor & Destructor
 
-SwapChain::SwapChain(VulkanDevice &device, VkExtent2D windowExtent) : device{device}, windowExtent{windowExtent}
+SwapChain::SwapChain(VulkanDevice &device, vk::Extent2D windowExtent) : device{device}, windowExtent{windowExtent}
 {
 	createSwapChain();
 	createImageViews();
@@ -233,9 +233,8 @@ vk::Extent2D SwapChain::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capab
 		return capabilities.currentExtent;
 	}
 
-	int width, height;
-	device.getWindow().getFrameBufferSize(&width, &height);
-	// TODO: This implementation violates the Law of Demeter.
+	int width  = windowExtent.width;
+	int height = windowExtent.height;
 
 	return {
 	    std::clamp<uint32_t>(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),

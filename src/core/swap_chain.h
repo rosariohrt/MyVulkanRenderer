@@ -15,7 +15,7 @@ class SwapChain
 	static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 	// Constructor & Destructor
-	SwapChain(VulkanDevice &deviceRef, VkExtent2D windowExtent);
+	SwapChain(VulkanDevice &deviceRef, vk::Extent2D windowExtent);
 	~SwapChain();
 
 	SwapChain(const SwapChain &)      = delete;
@@ -72,7 +72,7 @@ class SwapChain
   private:
 	// Variables
 	VulkanDevice &device;
-	VkExtent2D    windowExtent;
+	vk::Extent2D  windowExtent;
 
 	vk::SurfaceFormatKHR swapChainSurfaceFormat;
 	vk::Extent2D         swapChainExtent;

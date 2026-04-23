@@ -22,7 +22,6 @@ class Window
 
 	bool         shouldClose();
 	vk::Extent2D getExtent();
-	void         getFrameBufferSize(int *width, int *height);
 
 	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
