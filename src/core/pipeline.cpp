@@ -7,7 +7,6 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include <vulkan/vulkan.hpp>
 
 namespace mvr
 {
@@ -100,7 +99,7 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	    .logicOpEnable   = vk::False,
 	    .logicOp         = vk::LogicOp::eCopy,
 	    .attachmentCount = 1,
-	    .pAttachments    = &configInfo.colorBlendAttachment,
+	    .pAttachments    = nullptr,        // wired in createGraphicsPipeline to avoid dangling pointer on return
 	    .blendConstants  = blendConstants,
 	};
 	// rendering formats
@@ -113,7 +112,7 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	};
 	configInfo.dynamicStateInfo = {
 	    .dynamicStateCount = static_cast<uint32_t>(configInfo.dynamicStates.size()),
-	    .pDynamicStates    = configInfo.dynamicStates.data(),
+	    .pDynamicStates    = nullptr,        // wired in createGraphicsPipeline to avoid dangling pointer on return
 	};
 
 	return configInfo;
@@ -170,6 +169,13 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	              .pVertexAttributeDescriptions    = attributeDescriptions.data(),
     };
 
+	// Wire self-referential pointers here where configInfo's address is stable
+	vk::PipelineColorBlendStateCreateInfo colorBlend = configInfo.colorBlend;
+	colorBlend.pAttachments                          = &configInfo.colorBlendAttachment;
+
+	vk::PipelineDynamicStateCreateInfo dynamicStateInfo = configInfo.dynamicStateInfo;
+	dynamicStateInfo.pDynamicStates                     = configInfo.dynamicStates.data();
+
 	vk::StructureChain<vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo> pipelineInfoChain = {
 	    {
 	        .stageCount          = 2,
@@ -180,8 +186,8 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	        .pRasterizationState = &configInfo.rasterization,
 	        .pMultisampleState   = &configInfo.multisample,
 	        .pDepthStencilState  = &configInfo.depthStencil,
-	        .pColorBlendState    = &configInfo.colorBlend,
-	        .pDynamicState       = &configInfo.dynamicStateInfo,
+	        .pColorBlendState    = &colorBlend,
+	        .pDynamicState       = &dynamicStateInfo,
 	        .layout              = configInfo.pipelineLayout,
 	    },
 	    {
