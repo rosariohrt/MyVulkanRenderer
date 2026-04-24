@@ -55,8 +55,8 @@ void FirstApp::createPipeline()
 	auto pipelineConfig           = Pipeline::defaultPipelineConfigInfo(swapChain.getSwapChainSurfaceFormat());
 	pipelineConfig.pipelineLayout = *pipelineLayout;
 	pipeline                      = std::make_unique<Pipeline>(device,
-	                                                           "../shaders/simple_shader.vert.spv",
-	                                                           "../shaders/simple_shader.frag.spv",
+	                                                           "shaders/simple_shader.vert.spv",
+	                                                           "shaders/simple_shader.frag.spv",
 	                                                           pipelineConfig);
 }
 
