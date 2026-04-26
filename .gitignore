@@ -4,4 +4,4 @@
 build/
 out/
 shaders/*.spv
-.DS_Stores
+.DS_Store
