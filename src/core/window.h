@@ -14,24 +14,38 @@ namespace mvr
 class Window
 {
   public:
-	Window(uint32_t w, uint32_t h, std::string name);
+	Window(int w, int h, std::string name);
 	~Window();
 
 	Window(const Window &)            = delete;
 	Window &operator=(const Window &) = delete;
 
-	bool         shouldClose();
-	vk::Extent2D getExtent();
+	bool shouldClose()
+	{
+		return glfwWindowShouldClose(window);
+	}
+	vk::Extent2D getExtent()
+	{
+		return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)};
+	}
+	bool wasWindowResized()
+	{
+		return framebufferResized;
+	}
+	void resetWindowResizedFlag();
 
 	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
   private:
-	GLFWwindow    *window;
-	std::string    windowName;
-	const uint32_t width;
-	const uint32_t height;
+	GLFWwindow *window;
+	std::string windowName;
 
-	void initWindow();
+	int  width;
+	int  height;
+	bool framebufferResized = false;
+
+	static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
+	void        initWindow();
 };
 
 }        // namespace mvr
