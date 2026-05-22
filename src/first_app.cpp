@@ -80,6 +80,7 @@ void FirstApp::recreateSwapChain()
 	}
 
 	device.device().waitIdle();
+	swapChain.reset();
 	swapChain = std::make_unique<SwapChain>(device, extent);
 	createPipeline();
 }
