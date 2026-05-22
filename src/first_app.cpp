@@ -195,7 +195,7 @@ void FirstApp::drawFrame()
 	recordCommandBuffer(imageIndex);
 
 	result = swapChain->submitCommandBuffers(commandBuffers[frameIndex], imageIndex, frameIndex);
-	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
+	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || window.wasWindowResized()) {
 		window.resetWindowResizedFlag();
 		recreateSwapChain();
 	} else if (result != vk::Result::eSuccess) {
