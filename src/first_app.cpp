@@ -11,7 +11,7 @@ FirstApp::FirstApp()
 {
 	loadModel();
 	createPipelineLayout();
-	createPipeline();
+	recreateSwapChain();
 	createCommandBuffers();
 }
 
@@ -52,7 +52,7 @@ void FirstApp::createPipelineLayout()
 
 void FirstApp::createPipeline()
 {
-	auto pipelineConfig           = Pipeline::defaultPipelineConfigInfo(swapChain.getSwapChainSurfaceFormat());
+	auto pipelineConfig           = Pipeline::defaultPipelineConfigInfo(swapChain->getSwapChainSurfaceFormat());
 	pipelineConfig.pipelineLayout = *pipelineLayout;
 	pipeline                      = std::make_unique<Pipeline>(device,
 	                                                           "shaders/simple_shader.vert.spv",
@@ -69,6 +69,20 @@ void FirstApp::createCommandBuffers()
 	};
 
 	commandBuffers = vk::raii::CommandBuffers(device.device(), allocInfo);
+}
+
+void FirstApp::recreateSwapChain()
+{
+	auto extent = window.getExtent();
+	while (extent.width == 0 || extent.height == 0) {
+		extent = window.getExtent();
+		glfwWaitEvents();
+	}
+
+	device.device().waitIdle();
+	swapChain.reset();
+	swapChain = std::make_unique<SwapChain>(device, extent);
+	createPipeline();
 }
 
 void FirstApp::recordCommandBuffer(uint32_t imageIndex)
@@ -88,14 +102,14 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 
 	vk::ClearValue              clearColor     = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
 	vk::RenderingAttachmentInfo attachmentInfo = {
-	    .imageView   = swapChain.getImageView(imageIndex),
+	    .imageView   = swapChain->getImageView(imageIndex),
 	    .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
 	    .loadOp      = vk::AttachmentLoadOp::eClear,
 	    .storeOp     = vk::AttachmentStoreOp::eStore,
 	    .clearValue  = clearColor,
 	};
 	vk::RenderingInfo renderingInfo = {
-	    .renderArea           = {.offset = {0, 0}, .extent = swapChain.getSwapChainExtent()},
+	    .renderArea           = {.offset = {0, 0}, .extent = swapChain->getSwapChainExtent()},
 	    .layerCount           = 1,
 	    .colorAttachmentCount = 1,
 	    .pColorAttachments    = &attachmentInfo,
@@ -105,8 +119,8 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 
 	commandBuffer.beginRendering(renderingInfo);
 	pipeline->bind(commandBuffer);
-	commandBuffer.setViewport(0, swapChain.getViewport());
-	commandBuffer.setScissor(0, swapChain.getScissor());
+	commandBuffer.setViewport(0, swapChain->getViewport());
+	commandBuffer.setScissor(0, swapChain->getScissor());
 	model->bind(commandBuffer);
 	model->draw(commandBuffer);
 	commandBuffer.endRendering();
@@ -142,7 +156,7 @@ void FirstApp::transitionImageLayout(
 	    .newLayout           = newLayout,
 	    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 	    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-	    .image               = swapChain.getImage(imageIndex),
+	    .image               = swapChain->getImage(imageIndex),
 	    .subresourceRange    = {
 	           .aspectMask     = vk::ImageAspectFlagBits::eColor,
 	           .baseMipLevel   = 0,
@@ -163,24 +177,30 @@ void FirstApp::transitionImageLayout(
 
 void FirstApp::drawFrame()
 {
-	auto [result, imageIndex] = swapChain.acquireNextImage(frameIndex);
+	auto [result, imageIndex] = swapChain->acquireNextImage(frameIndex);
+
+	if (result == vk::Result::eErrorOutOfDateKHR) {
+		recreateSwapChain();
+		return;
+	}
 
 	if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) {
+		assert(result == vk::Result::eSuccess || result == vk::Result::eNotReady);
 		throw std::runtime_error("failed to acquire swap chain image!");
 	}
 
-	commandBuffers[frameIndex].reset();
+	// Only reset the fence if we are submitting work
+	swapChain->resetFences(frameIndex);
+
+	commandBuffers[frameIndex].reset(); 
 	recordCommandBuffer(imageIndex);
 
-	result = swapChain.submitCommandBuffers(commandBuffers[frameIndex], imageIndex, frameIndex);
-	switch (result) {
-		case vk::Result::eSuccess:
-			break;
-		case vk::Result::eSuboptimalKHR:
-			// Optionally handle suboptimal swap chain
-			break;
-		default:
-			throw std::runtime_error("failed to present swap chain image!");
+	result = swapChain->submitCommandBuffers(commandBuffers[frameIndex], imageIndex, frameIndex);
+	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR || window.wasWindowResized()) {
+		window.resetWindowResizedFlag();
+		recreateSwapChain();
+	} else if (result != vk::Result::eSuccess) {
+		throw std::runtime_error("failed to present swap chain image!");
 	}
 
 	frameIndex = (frameIndex + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;

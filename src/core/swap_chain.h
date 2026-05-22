@@ -19,7 +19,7 @@ class SwapChain
 	~SwapChain();
 
 	SwapChain(const SwapChain &)      = delete;
-	void operator=(const SwapChain &) = delete;
+	SwapChain &operator=(const SwapChain &) = delete;
 
 	// Public Methods
 	std::pair<vk::Result, uint32_t> acquireNextImage(uint32_t frameIndex);
@@ -67,6 +67,10 @@ class SwapChain
 		    .offset = {0, 0},
 		    .extent = swapChainExtent,
 		};
+	}
+	void resetFences(uint32_t frameIndex)
+	{
+		device.device().resetFences(*inFlightFences[frameIndex]);
 	}
 
   private:

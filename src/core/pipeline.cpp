@@ -110,7 +110,7 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	    vk::DynamicState::eViewport,
 	    vk::DynamicState::eScissor,
 	};
-	configInfo.dynamicStateInfo = {
+	configInfo.dynamicStateInfo = vk::PipelineDynamicStateCreateInfo{
 	    .dynamicStateCount = static_cast<uint32_t>(configInfo.dynamicStates.size()),
 	    .pDynamicStates    = nullptr,        // wired in createGraphicsPipeline to avoid dangling pointer on return
 	};

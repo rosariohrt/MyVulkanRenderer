@@ -6,7 +6,8 @@
 namespace mvr
 {
 
-Window::Window(uint32_t w, uint32_t h, std::string name) : width{w}, height{h}, windowName{name}
+Window::Window(int w, int h, std::string name) :
+    width{w}, height{h}, windowName{name}
 {
 	initWindow();
 }
@@ -17,14 +18,9 @@ Window::~Window()
 	glfwTerminate();
 }
 
-bool Window::shouldClose()
+void Window::resetWindowResizedFlag()
 {
-	return glfwWindowShouldClose(window);
-}
-
-vk::Extent2D Window::getExtent()
-{
-	return {width, height};
+	framebufferResized = false;
 }
 
 void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface)
@@ -38,9 +34,19 @@ void Window::initWindow()
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 	window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
+	glfwSetWindowUserPointer(window, this);
+	glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+}
+
+void Window::framebufferResizeCallback(GLFWwindow *window, int width, int height)
+{
+	auto pWindow                = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+	pWindow->framebufferResized = true;
+	pWindow->width              = width;
+	pWindow->height             = height;
 }
 
 }        // namespace mvr
