@@ -68,6 +68,10 @@ class SwapChain
 		    .extent = swapChainExtent,
 		};
 	}
+	void resetFences(uint32_t frameIndex)
+	{
+		device.device().resetFences(*inFlightFences[frameIndex]);
+	}
 
   private:
 	// Variables

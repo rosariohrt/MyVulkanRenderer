@@ -39,7 +39,6 @@ std::pair<vk::Result, uint32_t> SwapChain::acquireNextImage(uint32_t frameIndex)
 	if (fenceResult != vk::Result::eSuccess) {
 		throw std::runtime_error("failed to wait for fence!");
 	}
-	device.device().resetFences(*inFlightFences[frameIndex]);
 
 	auto [result, imageIndex] = swapChain.acquireNextImage(UINT64_MAX, *imageAvailableSemaphores[frameIndex], nullptr);
 

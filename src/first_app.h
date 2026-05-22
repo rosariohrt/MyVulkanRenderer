@@ -32,7 +32,7 @@ class FirstApp
   private:
 	Window                               window{WIDTH, HEIGHT, "MyVulkanRenderer"};
 	VulkanDevice                         device{window};
-	SwapChain                            swapChain{device, window.getExtent()};
+	std::unique_ptr<SwapChain>           swapChain;
 	std::unique_ptr<Pipeline>            pipeline;
 	vk::raii::PipelineLayout             pipelineLayout = nullptr;
 	std::vector<vk::raii::CommandBuffer> commandBuffers;
@@ -42,7 +42,7 @@ class FirstApp
 	void createPipelineLayout();
 	void createPipeline();
 	void createCommandBuffers();
-
+	void recreateSwapChain();
 	void recordCommandBuffer(uint32_t imageIndex);
 	void drawFrame();
 
