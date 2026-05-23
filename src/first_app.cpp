@@ -31,13 +31,18 @@ void FirstApp::run()
 
 void FirstApp::loadModel()
 {
-	std::vector<Model::Vertex> vertices{
-	    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-	    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-	    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+	const std::vector<Model::Vertex> vertices{
+	    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+	    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+	    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+	    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
 	};
 
-	model = std::make_unique<Model>(device, vertices);
+	const std::vector<uint16_t> indices = {
+	    0, 1, 2, 2, 3, 0,
+	};
+
+	model = std::make_unique<Model>(device, vertices, indices);
 }
 
 void FirstApp::createPipelineLayout()

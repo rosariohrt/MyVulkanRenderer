@@ -49,7 +49,9 @@ class Model
 		}
 	};
 
-	Model(VulkanDevice &device, const std::vector<Vertex> &vertices);
+	Model(VulkanDevice &device, 
+		  const std::vector<Vertex> &vertices, 
+		  const std::vector<uint16_t> &indices);
 	Model(const Model &)            = delete;
 	Model &operator=(const Model &) = delete;
 
@@ -61,8 +63,12 @@ class Model
 	vk::raii::Buffer       vertexBuffer       = nullptr;
 	vk::raii::DeviceMemory vertexBufferMemory = nullptr;
 	uint32_t               vertexCount;
+	vk::raii::Buffer       indexBuffer = nullptr;
+	vk::raii::DeviceMemory indexBufferMemory = nullptr;
+	uint32_t               indexCount;
 
 	void createVertexBuffers(const std::vector<Vertex> &vertices);
+	void createIndexBuffers(const std::vector<uint16_t> &indices);
 };
 
 }        // namespace mvr
