@@ -96,17 +96,44 @@ void VulkanDevice::endSingleTimeCommands(VkCommandBuffer commandBuffer)
 	vkFreeCommandBuffers(*device_, *commandPool, 1, &commandBuffer);
 }
 
-void VulkanDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> VulkanDevice::createBuffer(
+	vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties)
 {
-	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+	vk::BufferCreateInfo bufferInfo{
+		.size        = size,
+		.usage       = usage,
+		.sharingMode = vk::SharingMode::eExclusive,
+	};
 
-	VkBufferCopy copyRegion{};
-	copyRegion.srcOffset = 0;        // Optional
-	copyRegion.dstOffset = 0;        // Optional
-	copyRegion.size      = size;
-	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+	vk::raii::Buffer buffer(device_, bufferInfo);
 
-	endSingleTimeCommands(commandBuffer);
+	VkMemoryRequirements memRequirements = buffer.getMemoryRequirements();
+	vk::MemoryAllocateInfo allocInfo{
+		.allocationSize  = memRequirements.size,
+		.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties),
+	};
+	vk::raii::DeviceMemory bufferMemory(device_, allocInfo);
+
+	buffer.bindMemory(*bufferMemory, 0);
+
+	return {std::move(buffer), std::move(bufferMemory)};
+}
+
+void VulkanDevice::copyBuffer(vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer, vk::DeviceSize size)
+{
+	vk::CommandBufferAllocateInfo allocInfo = {
+	    .commandPool        = commandPool,
+	    .level              = vk::CommandBufferLevel::ePrimary,
+	    .commandBufferCount = 1,
+	};
+	vk::raii::CommandBuffer commandCopyBuffer = std::move(device_.allocateCommandBuffers(allocInfo).front());
+
+	commandCopyBuffer.begin({.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+	commandCopyBuffer.copyBuffer(*srcBuffer, *dstBuffer, {{0, 0, size}});
+	commandCopyBuffer.end();
+
+	graphicsQueue_.submit(vk::SubmitInfo{.commandBufferCount = 1, .pCommandBuffers = &*commandCopyBuffer}, nullptr);
+	graphicsQueue_.waitIdle();
 }
 
 void VulkanDevice::copyBufferToImage(

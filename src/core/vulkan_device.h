@@ -51,7 +51,12 @@ class VulkanDevice
 
 	VkCommandBuffer beginSingleTimeCommands();
 	void            endSingleTimeCommands(VkCommandBuffer commandBuffer);
-	void            copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+	std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> createBuffer(
+	    vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties
+	);
+
+	void            copyBuffer(vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer, vk::DeviceSize size);
 	void            copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
 	void            createImageWithInfo(const VkImageCreateInfo &imageInfo, vk::MemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
 
