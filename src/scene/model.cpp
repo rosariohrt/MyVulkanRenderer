@@ -24,30 +24,22 @@ void Model::draw(vk::CommandBuffer commandBuffer)
 
 void Model::createVertexBuffers(const std::vector<Vertex> &vertices)
 {
-	vertexCount = static_cast<uint32_t>(vertices.size());
+	vk::DeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-	vk::BufferCreateInfo bufferInfo = {
-	    .size        = sizeof(vertices[0]) * vertices.size(),
-	    .usage       = vk::BufferUsageFlagBits::eVertexBuffer,
-	    .sharingMode = vk::SharingMode::eExclusive,
-	};
+	auto [stagingBuffer, stagingBufferMemory] = device.createBuffer(
+		bufferSize,
+		vk::BufferUsageFlagBits::eTransferSrc,
+	    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-	vertexBuffer = vk::raii::Buffer(device.device(), bufferInfo);
+	void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
+	memcpy(dataStaging, vertices.data(), bufferSize);
+	stagingBufferMemory.unmapMemory();
 
-	vk::MemoryRequirements memRequirements = vertexBuffer.getMemoryRequirements();
-	vk::MemoryAllocateInfo memAllocateInfo = {
-	    .allocationSize  = memRequirements.size,
-	    .memoryTypeIndex = device.findMemoryType(
-	        memRequirements.memoryTypeBits,
-	        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent),
-	};
-	vertexBufferMemory = vk::raii::DeviceMemory(device.device(), memAllocateInfo);
-
-	vertexBuffer.bindMemory(*vertexBufferMemory, 0);
-
-	void *data = vertexBufferMemory.mapMemory(0, bufferInfo.size);
-	memcpy(data, vertices.data(), bufferInfo.size);
-	vertexBufferMemory.unmapMemory();
+	std::tie(vertexBuffer, vertexBufferMemory) = device.createBuffer(
+		bufferSize,
+		vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+	    vk::MemoryPropertyFlagBits::eDeviceLocal);
+	device.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 }
 
 }        // namespace mvr
