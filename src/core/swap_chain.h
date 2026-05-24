@@ -18,7 +18,7 @@ class SwapChain
 	SwapChain(VulkanDevice &deviceRef, vk::Extent2D windowExtent);
 	~SwapChain();
 
-	SwapChain(const SwapChain &)      = delete;
+	SwapChain(const SwapChain &)            = delete;
 	SwapChain &operator=(const SwapChain &) = delete;
 
 	// Public Methods

@@ -14,7 +14,8 @@ namespace mvr
 
 // Constructor & Destructor
 
-SwapChain::SwapChain(VulkanDevice &device, vk::Extent2D windowExtent) : device{device}, windowExtent{windowExtent}
+SwapChain::SwapChain(VulkanDevice &device, vk::Extent2D windowExtent) :
+    device{device}, windowExtent{windowExtent}
 {
 	createSwapChain();
 	createImageViews();
@@ -49,14 +50,14 @@ vk::Result SwapChain::submitCommandBuffers(const vk::raii::CommandBuffer &comman
 {
 	vk::PipelineStageFlags waitDestinationStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
 	const vk::SubmitInfo   submitInfo{
-	      .waitSemaphoreCount   = 1,
-	      .pWaitSemaphores      = &*imageAvailableSemaphores[frameIndex],
-	      .pWaitDstStageMask    = &waitDestinationStageMask,
-	      .commandBufferCount   = 1,
-	      .pCommandBuffers      = &*commandBuffer,
-	      .signalSemaphoreCount = 1,
-	      .pSignalSemaphores    = &*renderFinishedSemaphores[imageIndex],
-    };
+	    .waitSemaphoreCount   = 1,
+	    .pWaitSemaphores      = &*imageAvailableSemaphores[frameIndex],
+	    .pWaitDstStageMask    = &waitDestinationStageMask,
+	    .commandBufferCount   = 1,
+	    .pCommandBuffers      = &*commandBuffer,
+	    .signalSemaphoreCount = 1,
+	    .pSignalSemaphores    = &*renderFinishedSemaphores[imageIndex],
+	};
 
 	device.graphicsQueue().submit(submitInfo, *inFlightFences[frameIndex]);
 

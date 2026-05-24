@@ -35,11 +35,15 @@ void FirstApp::loadModel()
 	    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 	    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
 	    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-	    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
-	};
+	    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
 
 	const std::vector<uint16_t> indices = {
-	    0, 1, 2, 2, 3, 0,
+	    0,
+	    1,
+	    2,
+	    2,
+	    3,
+	    0,
 	};
 
 	model = std::make_unique<Model>(device, vertices, indices);
@@ -163,12 +167,12 @@ void FirstApp::transitionImageLayout(
 	    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 	    .image               = swapChain->getImage(imageIndex),
 	    .subresourceRange    = {
-	           .aspectMask     = vk::ImageAspectFlagBits::eColor,
-	           .baseMipLevel   = 0,
-	           .levelCount     = 1,
-	           .baseArrayLayer = 0,
-	           .layerCount     = 1,
-        },
+	        .aspectMask     = vk::ImageAspectFlagBits::eColor,
+	        .baseMipLevel   = 0,
+	        .levelCount     = 1,
+	        .baseArrayLayer = 0,
+	        .layerCount     = 1,
+	    },
 	};
 
 	vk::DependencyInfo dependencyInfo = {
@@ -197,7 +201,7 @@ void FirstApp::drawFrame()
 	// Only reset the fence if we are submitting work
 	swapChain->resetFences(frameIndex);
 
-	commandBuffers[frameIndex].reset(); 
+	commandBuffers[frameIndex].reset();
 	recordCommandBuffer(imageIndex);
 
 	result = swapChain->submitCommandBuffers(commandBuffers[frameIndex], imageIndex, frameIndex);

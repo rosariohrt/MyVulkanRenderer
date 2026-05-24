@@ -40,10 +40,10 @@ class VulkanDevice
 	VulkanDevice(Window &window);
 
 	// Not copyable or movable
-	VulkanDevice(const VulkanDevice &)       = delete;
-	VulkanDevice &operator=(const VulkanDevice &)     = delete;
-	VulkanDevice(VulkanDevice &&)            = delete;
-	VulkanDevice &operator=(VulkanDevice &&) = delete;
+	VulkanDevice(const VulkanDevice &)            = delete;
+	VulkanDevice &operator=(const VulkanDevice &) = delete;
+	VulkanDevice(VulkanDevice &&)                 = delete;
+	VulkanDevice &operator=(VulkanDevice &&)      = delete;
 
 	// Public Methods
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
@@ -53,12 +53,11 @@ class VulkanDevice
 	void            endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 	std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> createBuffer(
-	    vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties
-	);
+	    vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties);
 
-	void            copyBuffer(vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer, vk::DeviceSize size);
-	void            copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
-	void            createImageWithInfo(const VkImageCreateInfo &imageInfo, vk::MemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
+	void copyBuffer(vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer, vk::DeviceSize size);
+	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
+	void createImageWithInfo(const VkImageCreateInfo &imageInfo, vk::MemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory);
 
 	// Getters
 	vk::raii::CommandPool &getCommandPool()
