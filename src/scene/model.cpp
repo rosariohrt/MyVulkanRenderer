@@ -7,47 +7,66 @@
 namespace mvr
 {
 
-Model::Model(VulkanDevice &device, const std::vector<Vertex> &vertices) : device{device}
+Model::Model(VulkanDevice                &device,
+             const std::vector<Vertex>   &vertices,
+             const std::vector<uint16_t> &indices) :
+    device{device}
 {
 	createVertexBuffers(vertices);
+	createIndexBuffers(indices);
 }
 
 void Model::bind(vk::CommandBuffer commandBuffer)
 {
 	commandBuffer.bindVertexBuffers(0, *vertexBuffer, {0});
+	commandBuffer.bindIndexBuffer(*indexBuffer, 0, vk::IndexType::eUint16);
 }
 
 void Model::draw(vk::CommandBuffer commandBuffer)
 {
-	commandBuffer.draw(vertexCount, 1, 0, 0);
+	commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 }
 
 void Model::createVertexBuffers(const std::vector<Vertex> &vertices)
 {
-	vertexCount = static_cast<uint32_t>(vertices.size());
+	vertexCount               = static_cast<uint32_t>(vertices.size());
+	vk::DeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-	vk::BufferCreateInfo bufferInfo = {
-	    .size        = sizeof(vertices[0]) * vertices.size(),
-	    .usage       = vk::BufferUsageFlagBits::eVertexBuffer,
-	    .sharingMode = vk::SharingMode::eExclusive,
-	};
+	auto [stagingBuffer, stagingBufferMemory] = device.createBuffer(
+	    bufferSize,
+	    vk::BufferUsageFlagBits::eTransferSrc,
+	    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-	vertexBuffer = vk::raii::Buffer(device.device(), bufferInfo);
+	void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
+	memcpy(dataStaging, vertices.data(), bufferSize);
+	stagingBufferMemory.unmapMemory();
 
-	vk::MemoryRequirements memRequirements = vertexBuffer.getMemoryRequirements();
-	vk::MemoryAllocateInfo memAllocateInfo = {
-	    .allocationSize  = memRequirements.size,
-	    .memoryTypeIndex = device.findMemoryType(
-	        memRequirements.memoryTypeBits,
-	        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent),
-	};
-	vertexBufferMemory = vk::raii::DeviceMemory(device.device(), memAllocateInfo);
+	std::tie(vertexBuffer, vertexBufferMemory) = device.createBuffer(
+	    bufferSize,
+	    vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
+	    vk::MemoryPropertyFlagBits::eDeviceLocal);
+	device.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+}
 
-	vertexBuffer.bindMemory(*vertexBufferMemory, 0);
+void Model::createIndexBuffers(const std::vector<uint16_t> &indices)
+{
+	indexCount                = static_cast<uint32_t>(indices.size());
+	vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-	void *data = vertexBufferMemory.mapMemory(0, bufferInfo.size);
-	memcpy(data, vertices.data(), bufferInfo.size);
-	vertexBufferMemory.unmapMemory();
+	auto [stagingBuffer, stagingBufferMemory] = device.createBuffer(
+	    bufferSize,
+	    vk::BufferUsageFlagBits::eTransferSrc,
+	    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+	void *dataStaging = stagingBufferMemory.mapMemory(0, bufferSize);
+	memcpy(dataStaging, indices.data(), bufferSize);
+	stagingBufferMemory.unmapMemory();
+
+	std::tie(indexBuffer, indexBufferMemory) = device.createBuffer(
+	    bufferSize,
+	    vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
+	    vk::MemoryPropertyFlagBits::eDeviceLocal);
+	device.copyBuffer(stagingBuffer, indexBuffer, bufferSize);
 }
 
 }        // namespace mvr

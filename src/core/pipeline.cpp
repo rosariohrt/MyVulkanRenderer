@@ -14,7 +14,8 @@ namespace mvr
 Pipeline::Pipeline(VulkanDevice             &device,
                    const std::string        &vertFilePath,
                    const std::string        &fragFilePath,
-                   const PipelineConfigInfo &configInfo) : device{device}
+                   const PipelineConfigInfo &configInfo) :
+    device{device}
 {
 	createGraphicsPipeline(vertFilePath, fragFilePath, configInfo);
 }
@@ -163,11 +164,11 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	auto                                   bindingDescriptions   = Model::Vertex::getBindingDescriptions();
 	auto                                   attributeDescriptions = Model::Vertex::getAttributeDescriptions();
 	vk::PipelineVertexInputStateCreateInfo vertexInput           = {
-	              .vertexBindingDescriptionCount   = static_cast<uint32_t>(bindingDescriptions.size()),
-	              .pVertexBindingDescriptions      = bindingDescriptions.data(),
-	              .vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size()),
-	              .pVertexAttributeDescriptions    = attributeDescriptions.data(),
-    };
+	    .vertexBindingDescriptionCount   = static_cast<uint32_t>(bindingDescriptions.size()),
+	    .pVertexBindingDescriptions      = bindingDescriptions.data(),
+	    .vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size()),
+	    .pVertexAttributeDescriptions    = attributeDescriptions.data(),
+	};
 
 	// Wire self-referential pointers here where configInfo's address is stable
 	vk::PipelineColorBlendStateCreateInfo colorBlend = configInfo.colorBlend;
