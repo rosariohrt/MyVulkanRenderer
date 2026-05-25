@@ -84,4 +84,6 @@ void Model::createUniformBuffers()
 		uniformBuffersMemory.push_back(std::move(uniformBufferMemory));
 		uniformBuffersMapped.push_back(uniformBuffersMemory[i].mapMemory(0, bufferSize));        // persistent mapping
 	}
+}
+
 }        // namespace mvr
