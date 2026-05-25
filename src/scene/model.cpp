@@ -12,8 +12,8 @@ Model::Model(VulkanDevice                &device,
              const std::vector<uint16_t> &indices) :
     device{device}
 {
-	createVertexBuffers(vertices);
-	createIndexBuffers(indices);
+	createVertexBuffer(vertices);
+	createIndexBuffer(indices);
 	createUniformBuffers();
 }
 
@@ -28,7 +28,7 @@ void Model::draw(vk::CommandBuffer commandBuffer)
 	commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 }
 
-void Model::createVertexBuffers(const std::vector<Vertex> &vertices)
+void Model::createVertexBuffer(const std::vector<Vertex> &vertices)
 {
 	vertexCount               = static_cast<uint32_t>(vertices.size());
 	vk::DeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -49,7 +49,7 @@ void Model::createVertexBuffers(const std::vector<Vertex> &vertices)
 	device.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 }
 
-void Model::createIndexBuffers(const std::vector<uint16_t> &indices)
+void Model::createIndexBuffer(const std::vector<uint16_t> &indices)
 {
 	indexCount                = static_cast<uint32_t>(indices.size());
 	vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();

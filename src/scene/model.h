@@ -82,8 +82,8 @@ class Model
 	std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
 	std::vector<void *>                 uniformBuffersMapped;
 
-	void createVertexBuffers(const std::vector<Vertex> &vertices);
-	void createIndexBuffers(const std::vector<uint16_t> &indices);
+	void createVertexBuffer(const std::vector<Vertex> &vertices);
+	void createIndexBuffer(const std::vector<uint16_t> &indices);
 	void createUniformBuffers();
 };
 
