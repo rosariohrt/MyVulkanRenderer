@@ -61,6 +61,10 @@ class Model
 	void draw(vk::CommandBuffer commandBuffer);
 
 	// Getters
+	vk::raii::Buffer &getUniformBuffers(size_t index)
+	{
+		return uniformBuffers[index];
+	}
 	void *getUniformBuffersMapped(uint32_t frameIndex)
 	{
 		return uniformBuffersMapped[frameIndex];

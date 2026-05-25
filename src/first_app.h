@@ -26,7 +26,7 @@ class FirstApp
 	static constexpr uint32_t WIDTH      = 800;
 	static constexpr uint32_t HEIGHT     = 600;
 	uint32_t                  frameIndex = 0;
-	
+
 	FirstApp();
 	~FirstApp();
 
@@ -40,13 +40,17 @@ class FirstApp
 	VulkanDevice                         device{window};
 	std::unique_ptr<SwapChain>           swapChain;
 	vk::raii::DescriptorSetLayout        descriptorSetLayout = nullptr;
-	vk::raii::PipelineLayout             pipelineLayout      = nullptr;
+	vk::raii::DescriptorPool             descriptorPool      = nullptr;
+	std::vector<vk::raii::DescriptorSet> descriptorSets;
+	vk::raii::PipelineLayout             pipelineLayout = nullptr;
 	std::unique_ptr<Pipeline>            pipeline;
-	std::vector<vk::raii::CommandBuffer> commandBuffers;
 	std::unique_ptr<Model>               model;
+	std::vector<vk::raii::CommandBuffer> commandBuffers;
 
 	void loadModel();
 	void createDescriptorSetLayout();
+	void createDescriptorPool();
+	void createDescriptorSets();
 	void createPipelineLayout();
 	void createPipeline();
 	void createCommandBuffers();

@@ -10,6 +10,9 @@ namespace mvr
 FirstApp::FirstApp()
 {
 	loadModel();
+	createDescriptorSetLayout();
+	createDescriptorPool();
+	createDescriptorSets();
 	createPipelineLayout();
 	recreateSwapChain();
 	createCommandBuffers();
@@ -65,6 +68,54 @@ void FirstApp::createDescriptorSetLayout()
 	};
 
 	descriptorSetLayout = vk::raii::DescriptorSetLayout(device.device(), layoutInfo);
+}
+
+void FirstApp::createDescriptorPool()
+{
+	vk::DescriptorPoolSize poolSize = {
+	    .type            = vk::DescriptorType::eUniformBuffer,
+	    .descriptorCount = MAX_FRAMES_IN_FLIGHT,
+	};
+
+	vk::DescriptorPoolCreateInfo poolInfo = {
+	    .flags         = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+	    .maxSets       = MAX_FRAMES_IN_FLIGHT,
+	    .poolSizeCount = 1,
+	    .pPoolSizes    = &poolSize,
+	};
+
+	descriptorPool = vk::raii::DescriptorPool(device.device(), poolInfo);
+}
+
+void FirstApp::createDescriptorSets()
+{
+	std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, *descriptorSetLayout);
+	vk::DescriptorSetAllocateInfo        allocInfo = {
+	    .descriptorPool     = *descriptorPool,
+	    .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
+	    .pSetLayouts        = layouts.data(),
+	};
+
+	descriptorSets = device.device().allocateDescriptorSets(allocInfo);
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		vk::DescriptorBufferInfo bufferInfo = {
+		    .buffer = *model->getUniformBuffers(i),
+		    .offset = 0,
+		    .range  = sizeof(UniformBufferObject),
+		};
+
+		vk::WriteDescriptorSet descriptorWrite = {
+		    .dstSet          = *descriptorSets[i],
+		    .dstBinding      = 0,
+		    .dstArrayElement = 0,
+		    .descriptorCount = 1,
+		    .descriptorType  = vk::DescriptorType::eUniformBuffer,
+		    .pBufferInfo     = &bufferInfo,
+		};
+
+		device.device().updateDescriptorSets(descriptorWrite, {});
+	}
 }
 
 void FirstApp::createPipelineLayout()
@@ -165,6 +216,11 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	commandBuffer.setViewport(0, swapChain->getViewport());
 	commandBuffer.setScissor(0, swapChain->getScissor());
 	model->bind(commandBuffer);
+	commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+	                                 *pipelineLayout,
+	                                 0,
+	                                 *descriptorSets[frameIndex],
+	                                 nullptr);
 	model->draw(commandBuffer);
 	commandBuffer.endRendering();
 
