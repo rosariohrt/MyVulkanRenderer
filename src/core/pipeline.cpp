@@ -52,7 +52,7 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	    .rasterizerDiscardEnable = vk::False,
 	    .polygonMode             = vk::PolygonMode::eFill,
 	    .cullMode                = vk::CullModeFlagBits::eBack,
-	    .frontFace               = vk::FrontFace::eClockwise,
+	    .frontFace               = vk::FrontFace::eCounterClockwise,
 	    .depthBiasEnable         = vk::False,
 	    .depthBiasConstantFactor = 0.0f,        // optional
 	    .depthBiasClamp          = 0.0f,        // optional
