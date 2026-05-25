@@ -1,10 +1,12 @@
 #pragma once
 
+#include "constants.h"
 #include "core/pipeline.h"
 #include "core/swap_chain.h"
 #include "core/vulkan_device.h"
 #include "core/window.h"
 #include "scene/model.h"
+#include "ubo.h"
 
 // std
 #include <cstdint>
@@ -33,12 +35,14 @@ class FirstApp
 	Window                               window{WIDTH, HEIGHT, "MyVulkanRenderer"};
 	VulkanDevice                         device{window};
 	std::unique_ptr<SwapChain>           swapChain;
+	vk::raii::DescriptorSetLayout        descriptorSetLayout = nullptr;
+	vk::raii::PipelineLayout             pipelineLayout      = nullptr;
 	std::unique_ptr<Pipeline>            pipeline;
-	vk::raii::PipelineLayout             pipelineLayout = nullptr;
 	std::vector<vk::raii::CommandBuffer> commandBuffers;
 	std::unique_ptr<Model>               model;
 
 	void loadModel();
+	void createDescriptorSetLayout();
 	void createPipelineLayout();
 	void createPipeline();
 	void createCommandBuffers();

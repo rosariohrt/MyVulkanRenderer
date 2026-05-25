@@ -49,10 +49,29 @@ void FirstApp::loadModel()
 	model = std::make_unique<Model>(device, vertices, indices);
 }
 
+void FirstApp::createDescriptorSetLayout()
+{
+	vk::DescriptorSetLayoutBinding uboLayoutBinding = {
+	    .binding            = 0,
+	    .descriptorType     = vk::DescriptorType::eUniformBuffer,
+	    .descriptorCount    = 1,
+	    .stageFlags         = vk::ShaderStageFlagBits::eVertex,
+	    .pImmutableSamplers = nullptr,
+	};
+
+	vk::DescriptorSetLayoutCreateInfo layoutInfo = {
+	    .bindingCount = 1,
+	    .pBindings    = &uboLayoutBinding,
+	};
+
+	descriptorSetLayout = vk::raii::DescriptorSetLayout(device.device(), layoutInfo);
+}
+
 void FirstApp::createPipelineLayout()
 {
 	vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {
-	    .setLayoutCount         = 0,
+	    .setLayoutCount         = 1,
+	    .pSetLayouts            = &*descriptorSetLayout,
 	    .pushConstantRangeCount = 0,
 	};
 
@@ -74,7 +93,7 @@ void FirstApp::createCommandBuffers()
 	vk::CommandBufferAllocateInfo allocInfo = {
 	    .commandPool        = device.getCommandPool(),
 	    .level              = vk::CommandBufferLevel::ePrimary,
-	    .commandBufferCount = SwapChain::MAX_FRAMES_IN_FLIGHT,
+	    .commandBufferCount = MAX_FRAMES_IN_FLIGHT,
 	};
 
 	commandBuffers = vk::raii::CommandBuffers(device.device(), allocInfo);
@@ -212,7 +231,7 @@ void FirstApp::drawFrame()
 		throw std::runtime_error("failed to present swap chain image!");
 	}
 
-	frameIndex = (frameIndex + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
+	frameIndex = (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 }        // namespace mvr
