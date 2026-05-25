@@ -14,6 +14,7 @@ Model::Model(VulkanDevice                &device,
 {
 	createVertexBuffers(vertices);
 	createIndexBuffers(indices);
+	createUniformBuffers();
 }
 
 void Model::bind(vk::CommandBuffer commandBuffer)
@@ -69,4 +70,18 @@ void Model::createIndexBuffers(const std::vector<uint16_t> &indices)
 	device.copyBuffer(stagingBuffer, indexBuffer, bufferSize);
 }
 
+void Model::createUniformBuffers()
+{
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		vk::DeviceSize bufferSize = sizeof(UniformBufferObject);
+
+		auto [uniformBuffer, uniformBufferMemory] = device.createBuffer(
+		    bufferSize,
+		    vk::BufferUsageFlagBits::eUniformBuffer,
+		    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+		uniformBuffers.push_back(std::move(uniformBuffer));
+		uniformBuffersMemory.push_back(std::move(uniformBufferMemory));
+		uniformBuffersMapped.push_back(uniformBuffersMemory[i].mapMemory(0, bufferSize));        // persistent mapping
+	}
 }        // namespace mvr

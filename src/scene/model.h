@@ -1,6 +1,8 @@
 #pragma once
 
+#include "constants.h"
 #include "core/vulkan_device.h"
+#include "ubo.h"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -58,17 +60,27 @@ class Model
 	void bind(vk::CommandBuffer commandBuffer);
 	void draw(vk::CommandBuffer commandBuffer);
 
+	// Getters
+	void *getUniformBuffersMapped(uint32_t frameIndex)
+	{
+		return uniformBuffersMapped[frameIndex];
+	}
+
   private:
-	VulkanDevice          &device;
-	vk::raii::Buffer       vertexBuffer       = nullptr;
-	vk::raii::DeviceMemory vertexBufferMemory = nullptr;
-	uint32_t               vertexCount;
-	vk::raii::Buffer       indexBuffer       = nullptr;
-	vk::raii::DeviceMemory indexBufferMemory = nullptr;
-	uint32_t               indexCount;
+	VulkanDevice                       &device;
+	vk::raii::Buffer                    vertexBuffer       = nullptr;
+	vk::raii::DeviceMemory              vertexBufferMemory = nullptr;
+	uint32_t                            vertexCount;
+	vk::raii::Buffer                    indexBuffer       = nullptr;
+	vk::raii::DeviceMemory              indexBufferMemory = nullptr;
+	uint32_t                            indexCount;
+	std::vector<vk::raii::Buffer>       uniformBuffers;
+	std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
+	std::vector<void *>                 uniformBuffersMapped;
 
 	void createVertexBuffers(const std::vector<Vertex> &vertices);
 	void createIndexBuffers(const std::vector<uint16_t> &indices);
+	void createUniformBuffers();
 };
 
 }        // namespace mvr
