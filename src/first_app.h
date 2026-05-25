@@ -9,9 +9,13 @@
 #include "ubo.h"
 
 // std
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <vector>
+
+// libs
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace mvr
 {
@@ -22,7 +26,7 @@ class FirstApp
 	static constexpr uint32_t WIDTH      = 800;
 	static constexpr uint32_t HEIGHT     = 600;
 	uint32_t                  frameIndex = 0;
-
+	
 	FirstApp();
 	~FirstApp();
 
@@ -47,6 +51,7 @@ class FirstApp
 	void createPipeline();
 	void createCommandBuffers();
 	void recreateSwapChain();
+	void updateUniformBuffer(uint32_t frameIndex);
 	void recordCommandBuffer(uint32_t imageIndex);
 	void drawFrame();
 
