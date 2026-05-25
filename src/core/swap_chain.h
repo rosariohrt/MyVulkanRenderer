@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include "vulkan_device.h"
 
 // std
@@ -12,8 +13,6 @@ namespace mvr
 class SwapChain
 {
   public:
-	static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
-
 	// Constructor & Destructor
 	SwapChain(VulkanDevice &deviceRef, vk::Extent2D windowExtent);
 	~SwapChain();

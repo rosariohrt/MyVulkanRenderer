@@ -1,15 +1,21 @@
 #pragma once
 
+#include "constants.h"
 #include "core/pipeline.h"
 #include "core/swap_chain.h"
 #include "core/vulkan_device.h"
 #include "core/window.h"
 #include "scene/model.h"
+#include "ubo.h"
 
 // std
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <vector>
+
+// libs
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace mvr
 {
@@ -33,16 +39,23 @@ class FirstApp
 	Window                               window{WIDTH, HEIGHT, "MyVulkanRenderer"};
 	VulkanDevice                         device{window};
 	std::unique_ptr<SwapChain>           swapChain;
-	std::unique_ptr<Pipeline>            pipeline;
+	vk::raii::DescriptorSetLayout        descriptorSetLayout = nullptr;
+	vk::raii::DescriptorPool             descriptorPool      = nullptr;
+	std::vector<vk::raii::DescriptorSet> descriptorSets;
 	vk::raii::PipelineLayout             pipelineLayout = nullptr;
-	std::vector<vk::raii::CommandBuffer> commandBuffers;
+	std::unique_ptr<Pipeline>            pipeline;
 	std::unique_ptr<Model>               model;
+	std::vector<vk::raii::CommandBuffer> commandBuffers;
 
 	void loadModel();
+	void createDescriptorSetLayout();
+	void createDescriptorPool();
+	void createDescriptorSets();
 	void createPipelineLayout();
 	void createPipeline();
 	void createCommandBuffers();
 	void recreateSwapChain();
+	void updateUniformBuffer(uint32_t frameIndex);
 	void recordCommandBuffer(uint32_t imageIndex);
 	void drawFrame();
 
