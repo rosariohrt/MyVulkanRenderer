@@ -62,40 +62,6 @@ VkFormat VulkanDevice::findSupportedFormat(
 	throw std::runtime_error("failed to find supported format!");
 }
 
-VkCommandBuffer VulkanDevice::beginSingleTimeCommands()
-{
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool        = *commandPool;
-	allocInfo.commandBufferCount = 1;
-
-	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(*device_, &allocInfo, &commandBuffer);
-
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-	vkBeginCommandBuffer(commandBuffer, &beginInfo);
-	return commandBuffer;
-}
-
-void VulkanDevice::endSingleTimeCommands(VkCommandBuffer commandBuffer)
-{
-	vkEndCommandBuffer(commandBuffer);
-
-	VkSubmitInfo submitInfo{};
-	submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers    = &commandBuffer;
-
-	vkQueueSubmit(*graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(*graphicsQueue_);
-
-	vkFreeCommandBuffers(*device_, *commandPool, 1, &commandBuffer);
-}
-
 std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> VulkanDevice::createBuffer(
     vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties)
 {
@@ -107,7 +73,7 @@ std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> VulkanDevice::createBuffer(
 
 	vk::raii::Buffer buffer(device_, bufferInfo);
 
-	VkMemoryRequirements   memRequirements = buffer.getMemoryRequirements();
+	vk::MemoryRequirements memRequirements = buffer.getMemoryRequirements();
 	vk::MemoryAllocateInfo allocInfo{
 	    .allocationSize  = memRequirements.size,
 	    .memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties),
@@ -119,27 +85,46 @@ std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> VulkanDevice::createBuffer(
 	return {std::move(buffer), std::move(bufferMemory)};
 }
 
-void VulkanDevice::copyBuffer(vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer, vk::DeviceSize size)
+vk::raii::CommandBuffer VulkanDevice::beginSingleTimeCommands()
 {
 	vk::CommandBufferAllocateInfo allocInfo = {
 	    .commandPool        = commandPool,
 	    .level              = vk::CommandBufferLevel::ePrimary,
 	    .commandBufferCount = 1,
 	};
-	vk::raii::CommandBuffer commandCopyBuffer = std::move(device_.allocateCommandBuffers(allocInfo).front());
+	vk::raii::CommandBuffer commandBuffer = std::move(vk::raii::CommandBuffers(device_, allocInfo).front());
 
-	commandCopyBuffer.begin({.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
-	commandCopyBuffer.copyBuffer(*srcBuffer, *dstBuffer, {{0, 0, size}});
-	commandCopyBuffer.end();
+	vk::CommandBufferBeginInfo beginInfo = {
+	    .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit,
+	};
+	commandBuffer.begin(beginInfo);
 
-	graphicsQueue_.submit(vk::SubmitInfo{.commandBufferCount = 1, .pCommandBuffers = &*commandCopyBuffer}, nullptr);
+	return commandBuffer;
+}
+
+void VulkanDevice::endSingleTimeCommands(vk::raii::CommandBuffer &&commandBuffer)
+{
+	commandBuffer.end();
+
+	vk::SubmitInfo submitInfo = {
+	    .commandBufferCount = 1,
+	    .pCommandBuffers    = &*commandBuffer,
+	};
+	graphicsQueue_.submit(submitInfo, nullptr);
 	graphicsQueue_.waitIdle();
+}
+
+void VulkanDevice::copyBuffer(vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer, vk::DeviceSize size)
+{
+	vk::raii::CommandBuffer commandCopyBuffer = beginSingleTimeCommands();
+	commandCopyBuffer.copyBuffer(*srcBuffer, *dstBuffer, vk::BufferCopy{.size = size});
+	endSingleTimeCommands(std::move(commandCopyBuffer));
 }
 
 void VulkanDevice::copyBufferToImage(
     VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount)
 {
-	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+	vk::raii::CommandBuffer commandBuffer = beginSingleTimeCommands();
 
 	VkBufferImageCopy region{};
 	region.bufferOffset      = 0;
@@ -155,13 +140,13 @@ void VulkanDevice::copyBufferToImage(
 	region.imageExtent = {width, height, 1};
 
 	vkCmdCopyBufferToImage(
-	    commandBuffer,
+	    *commandBuffer,
 	    buffer,
 	    image,
 	    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 	    1,
 	    &region);
-	endSingleTimeCommands(commandBuffer);
+	endSingleTimeCommands(std::move(commandBuffer));
 }
 
 void VulkanDevice::createImageWithInfo(

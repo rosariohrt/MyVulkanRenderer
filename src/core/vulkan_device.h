@@ -49,11 +49,11 @@ class VulkanDevice
 	uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
-	VkCommandBuffer beginSingleTimeCommands();
-	void            endSingleTimeCommands(VkCommandBuffer commandBuffer);
-
 	std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> createBuffer(
 	    vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties);
+
+	vk::raii::CommandBuffer beginSingleTimeCommands();
+	void                    endSingleTimeCommands(vk::raii::CommandBuffer &&commandBuffer);
 
 	void copyBuffer(vk::raii::Buffer &srcBuffer, vk::raii::Buffer &dstBuffer, vk::DeviceSize size);
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
