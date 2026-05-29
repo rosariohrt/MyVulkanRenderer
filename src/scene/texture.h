@@ -1,0 +1,36 @@
+#pragma once
+
+#include "core/vulkan_device.h"
+
+// std
+#include <string>
+
+namespace mvr
+{
+
+class Texture
+{
+  public:
+	Texture(VulkanDevice &device, const std::string &filePath);
+	~Texture();
+
+	Texture(const Texture &)            = delete;
+	Texture &operator=(const Texture &) = delete;
+
+  private:
+	VulkanDevice          &device;
+	vk::raii::Image        TextureImage       = nullptr;
+	vk::raii::DeviceMemory TextureImageMemory = nullptr;
+
+	std::pair<vk::raii::Image,
+	          vk::raii::DeviceMemory>
+	     createImage(uint32_t                width,
+	                 uint32_t                height,
+	                 vk::Format              format,
+	                 vk::ImageTiling         tiling,
+	                 vk::ImageUsageFlags     usage,
+	                 vk::MemoryPropertyFlags properties);
+	void createTextureImage(const std::string &filePath);
+};
+
+}        // namespace mvr
