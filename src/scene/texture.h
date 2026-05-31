@@ -30,6 +30,11 @@ class Texture
 	                 vk::ImageUsageFlags     usage,
 	                 vk::MemoryPropertyFlags properties);
 	void createTextureImage(const std::string &filePath);
+
+	void transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
+	                           const vk::raii::Image   &image,
+	                           vk::ImageLayout          oldLayout,
+	                           vk::ImageLayout          newLayout);
 };
 
 }        // namespace mvr

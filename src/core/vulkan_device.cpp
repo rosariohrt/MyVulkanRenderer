@@ -135,34 +135,28 @@ void VulkanDevice::copyBuffer(vk::raii::Buffer &srcBuffer,
 	endSingleTimeCommands(std::move(commandCopyBuffer));
 }
 
-void VulkanDevice::copyBufferToImage(VkBuffer buffer,
-                                     VkImage  image,
-                                     uint32_t width,
-                                     uint32_t height,
-                                     uint32_t layerCount)
+void VulkanDevice::copyBufferToImage(vk::raii::CommandBuffer &commandBuffer,
+                                     const vk::raii::Buffer  &buffer,
+                                     vk::raii::Image         &image,
+                                     uint32_t                 width,
+                                     uint32_t                 height)
 {
-	vk::raii::CommandBuffer commandBuffer = beginSingleTimeCommands();
-
-	VkBufferImageCopy region{};
-	region.bufferOffset      = 0;
-	region.bufferRowLength   = 0;
-	region.bufferImageHeight = 0;
-
-	region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-	region.imageSubresource.mipLevel       = 0;
-	region.imageSubresource.baseArrayLayer = 0;
-	region.imageSubresource.layerCount     = layerCount;
-
-	region.imageOffset = {0, 0, 0};
-	region.imageExtent = {width, height, 1};
-
-	vkCmdCopyBufferToImage(*commandBuffer,
-	                       buffer,
-	                       image,
-	                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-	                       1,
-	                       &region);
-	endSingleTimeCommands(std::move(commandBuffer));
+	vk::BufferImageCopy region = {
+	    .bufferOffset      = 0,
+	    .bufferRowLength   = 0,
+	    .bufferImageHeight = 0,
+	    .imageSubresource =
+	        {
+	            .aspectMask     = vk::ImageAspectFlagBits::eColor,
+	            .mipLevel       = 0,
+	            .baseArrayLayer = 0,
+	            .layerCount     = 1,
+	        },
+	    .imageOffset = {0, 0, 0},
+	    .imageExtent = {width, height, 1},
+	};
+	commandBuffer.copyBufferToImage(
+	    buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
 }
 
 void VulkanDevice::createImageWithInfo(const VkImageCreateInfo &imageInfo,
