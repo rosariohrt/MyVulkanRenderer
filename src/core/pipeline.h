@@ -37,15 +37,15 @@ class Pipeline
 	Pipeline(const Pipeline &)            = delete;
 	Pipeline &operator=(const Pipeline &) = delete;
 
-	void                      bind(const vk::raii::CommandBuffer &commandBuffer);
+	void bind(const vk::raii::CommandBuffer &commandBuffer);
 	static PipelineConfigInfo defaultPipelineConfigInfo(vk::Format format);
 
   private:
 	static std::vector<char> readFile(const std::string &filePath);
 	vk::raii::ShaderModule   createShaderModule(const std::vector<char> &code);
-	void                     createGraphicsPipeline(const std::string        &vertFilePath,
-	                                                const std::string        &fragFilePath,
-	                                                const PipelineConfigInfo &configInfo);
+	void createGraphicsPipeline(const std::string        &vertFilePath,
+	                            const std::string        &fragFilePath,
+	                            const PipelineConfigInfo &configInfo);
 
 	VulkanDevice      &device;
 	vk::raii::Pipeline graphicsPipeline = nullptr;

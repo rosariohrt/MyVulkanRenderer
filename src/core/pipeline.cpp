@@ -21,12 +21,12 @@ Pipeline::Pipeline(VulkanDevice             &device,
 }
 
 Pipeline::~Pipeline()
-{
-}
+{}
 
 void Pipeline::bind(const vk::raii::CommandBuffer &commandBuffer)
 {
-	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *graphicsPipeline);
+	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics,
+	                           *graphicsPipeline);
 }
 
 PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
@@ -100,8 +100,9 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	    .logicOpEnable   = vk::False,
 	    .logicOp         = vk::LogicOp::eCopy,
 	    .attachmentCount = 1,
-	    .pAttachments    = nullptr,        // wired in createGraphicsPipeline to avoid dangling pointer on return
-	    .blendConstants  = blendConstants,
+	    .pAttachments    = nullptr,        // wired in createGraphicsPipeline to
+	                                       // avoid dangling pointer on return
+	    .blendConstants = blendConstants,
 	};
 	// rendering formats
 	configInfo.colorAttachmentFormats = {format};
@@ -112,8 +113,10 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	    vk::DynamicState::eScissor,
 	};
 	configInfo.dynamicStateInfo = vk::PipelineDynamicStateCreateInfo{
-	    .dynamicStateCount = static_cast<uint32_t>(configInfo.dynamicStates.size()),
-	    .pDynamicStates    = nullptr,        // wired in createGraphicsPipeline to avoid dangling pointer on return
+	    .dynamicStateCount =
+	        static_cast<uint32_t>(configInfo.dynamicStates.size()),
+	    .pDynamicStates = nullptr,        // wired in createGraphicsPipeline to
+	                                      // avoid dangling pointer on return
 	};
 
 	return configInfo;
@@ -141,11 +144,14 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
                                       const std::string        &fragFilePath,
                                       const PipelineConfigInfo &configInfo)
 {
-	assert(configInfo.pipelineLayout != VK_NULL_HANDLE && "Cannot create pipeline with no layout provided");
+	assert(configInfo.pipelineLayout != VK_NULL_HANDLE &&
+	       "Cannot create pipeline with no layout provided");
 
 	// create shader modules and shader stages
-	vk::raii::ShaderModule vertexShaderModule   = createShaderModule(readFile(vertFilePath));
-	vk::raii::ShaderModule fragmentShaderModule = createShaderModule(readFile(fragFilePath));
+	vk::raii::ShaderModule vertexShaderModule =
+	    createShaderModule(readFile(vertFilePath));
+	vk::raii::ShaderModule fragmentShaderModule =
+	    createShaderModule(readFile(fragFilePath));
 
 	vk::PipelineShaderStageCreateInfo vertShaderStageInfo = {
 	    .stage  = vk::ShaderStageFlagBits::eVertex,
@@ -158,48 +164,60 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	    .pName  = "main",
 	};
 
-	vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+	vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo,
+	                                                    fragShaderStageInfo};
 
 	// create vertex input state
-	auto                                   bindingDescriptions   = Model::Vertex::getBindingDescriptions();
-	auto                                   attributeDescriptions = Model::Vertex::getAttributeDescriptions();
-	vk::PipelineVertexInputStateCreateInfo vertexInput           = {
-	    .vertexBindingDescriptionCount   = static_cast<uint32_t>(bindingDescriptions.size()),
-	    .pVertexBindingDescriptions      = bindingDescriptions.data(),
-	    .vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size()),
-	    .pVertexAttributeDescriptions    = attributeDescriptions.data(),
+	auto bindingDescriptions   = Model::Vertex::getBindingDescriptions();
+	auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
+	vk::PipelineVertexInputStateCreateInfo vertexInput = {
+	    .vertexBindingDescriptionCount =
+	        static_cast<uint32_t>(bindingDescriptions.size()),
+	    .pVertexBindingDescriptions = bindingDescriptions.data(),
+	    .vertexAttributeDescriptionCount =
+	        static_cast<uint32_t>(attributeDescriptions.size()),
+	    .pVertexAttributeDescriptions = attributeDescriptions.data(),
 	};
 
 	// Wire self-referential pointers here where configInfo's address is stable
 	vk::PipelineColorBlendStateCreateInfo colorBlend = configInfo.colorBlend;
-	colorBlend.pAttachments                          = &configInfo.colorBlendAttachment;
+	colorBlend.pAttachments = &configInfo.colorBlendAttachment;
 
-	vk::PipelineDynamicStateCreateInfo dynamicStateInfo = configInfo.dynamicStateInfo;
-	dynamicStateInfo.pDynamicStates                     = configInfo.dynamicStates.data();
+	vk::PipelineDynamicStateCreateInfo dynamicStateInfo =
+	    configInfo.dynamicStateInfo;
+	dynamicStateInfo.pDynamicStates = configInfo.dynamicStates.data();
 
-	vk::StructureChain<vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo> pipelineInfoChain = {
-	    {
-	        .stageCount          = 2,
-	        .pStages             = shaderStages,
-	        .pVertexInputState   = &vertexInput,
-	        .pInputAssemblyState = &configInfo.inputAssembly,
-	        .pViewportState      = &configInfo.viewport,
-	        .pRasterizationState = &configInfo.rasterization,
-	        .pMultisampleState   = &configInfo.multisample,
-	        .pDepthStencilState  = &configInfo.depthStencil,
-	        .pColorBlendState    = &colorBlend,
-	        .pDynamicState       = &dynamicStateInfo,
-	        .layout              = configInfo.pipelineLayout,
-	    },
-	    {
-	        .colorAttachmentCount    = static_cast<uint32_t>(configInfo.colorAttachmentFormats.size()),
-	        .pColorAttachmentFormats = configInfo.colorAttachmentFormats.data(),
-	    }};
+	vk::StructureChain<vk::GraphicsPipelineCreateInfo,
+	                   vk::PipelineRenderingCreateInfo>
+	    pipelineInfoChain = {
+	        {
+	            .stageCount          = 2,
+	            .pStages             = shaderStages,
+	            .pVertexInputState   = &vertexInput,
+	            .pInputAssemblyState = &configInfo.inputAssembly,
+	            .pViewportState      = &configInfo.viewport,
+	            .pRasterizationState = &configInfo.rasterization,
+	            .pMultisampleState   = &configInfo.multisample,
+	            .pDepthStencilState  = &configInfo.depthStencil,
+	            .pColorBlendState    = &colorBlend,
+	            .pDynamicState       = &dynamicStateInfo,
+	            .layout              = configInfo.pipelineLayout,
+	        },
+	        {
+	            .colorAttachmentCount = static_cast<uint32_t>(
+	                configInfo.colorAttachmentFormats.size()),
+	            .pColorAttachmentFormats =
+	                configInfo.colorAttachmentFormats.data(),
+	        }};
 
-	graphicsPipeline = vk::raii::Pipeline(device.device(), nullptr, pipelineInfoChain.get<vk::GraphicsPipelineCreateInfo>());
+	graphicsPipeline = vk::raii::Pipeline(
+	    device.device(),
+	    nullptr,
+	    pipelineInfoChain.get<vk::GraphicsPipelineCreateInfo>());
 }
 
-vk::raii::ShaderModule Pipeline::createShaderModule(const std::vector<char> &code)
+vk::raii::ShaderModule
+    Pipeline::createShaderModule(const std::vector<char> &code)
 {
 	vk::ShaderModuleCreateInfo createInfo = {
 	    .codeSize = code.size() * sizeof(char),

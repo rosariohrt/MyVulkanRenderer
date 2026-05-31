@@ -22,8 +22,11 @@ class SwapChain
 
 	// Public Methods
 	std::pair<vk::Result, uint32_t> acquireNextImage(uint32_t frameIndex);
-	vk::Result                      submitCommandBuffers(const vk::raii::CommandBuffer &commandBuffer, uint32_t imageIndex, uint32_t frameIndex);
-	VkFormat                        findDepthFormat();
+	vk::Result
+	         submitCommandBuffers(const vk::raii::CommandBuffer &commandBuffer,
+	                              uint32_t                       imageIndex,
+	                              uint32_t                       frameIndex);
+	VkFormat findDepthFormat();
 
 	vk::Image getImage(uint32_t index)
 	{
@@ -47,7 +50,8 @@ class SwapChain
 	}
 	float extentAspectRatio()
 	{
-		return static_cast<float>(swapChainExtent.width) / static_cast<float>(swapChainExtent.height);
+		return static_cast<float>(swapChainExtent.width) /
+		       static_cast<float>(swapChainExtent.height);
 	}
 	vk::Viewport getViewport()
 	{
@@ -100,10 +104,14 @@ class SwapChain
 	void createSyncObjects();
 
 	// Helper Methods
-	vk::SurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats);
-	vk::PresentModeKHR   chooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes);
-	vk::Extent2D         chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
-	uint32_t             chooseSwapMinImageCount(const vk::SurfaceCapabilitiesKHR &capabilities);
+	vk::SurfaceFormatKHR chooseSwapSurfaceFormat(
+	    const std::vector<vk::SurfaceFormatKHR> &availableFormats);
+	vk::PresentModeKHR chooseSwapPresentMode(
+	    const std::vector<vk::PresentModeKHR> &availablePresentModes);
+	vk::Extent2D
+	    chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
+	uint32_t
+	    chooseSwapMinImageCount(const vk::SurfaceCapabilitiesKHR &capabilities);
 };
 
 }        // namespace mvr
