@@ -77,7 +77,7 @@ void Texture::createTextureImage(const std::string &filePath)
 
 	stbi_image_free(pixels);
 
-	std::tie(TextureImage, TextureImageMemory) = createImage(
+	std::tie(textureImage, textureImageMemory) = createImage(
 	    texWidth,
 	    texHeight,
 	    vk::Format::eR8G8B8A8Srgb,
@@ -87,16 +87,16 @@ void Texture::createTextureImage(const std::string &filePath)
 
 	vk::raii::CommandBuffer commandBuffer = device.beginSingleTimeCommands();
 	transitionImageLayout(commandBuffer,
-	                      TextureImage,
+	                      textureImage,
 	                      vk::ImageLayout::eUndefined,
 	                      vk::ImageLayout::eTransferDstOptimal);
 	device.copyBufferToImage(commandBuffer,
 	                         stagingBuffer,
-	                         TextureImage,
+	                         textureImage,
 	                         static_cast<uint32_t>(texWidth),
 	                         static_cast<uint32_t>(texHeight));
 	transitionImageLayout(commandBuffer,
-	                      TextureImage,
+	                      textureImage,
 	                      vk::ImageLayout::eTransferDstOptimal,
 	                      vk::ImageLayout::eShaderReadOnlyOptimal);
 	device.endSingleTimeCommands(std::move(commandBuffer));

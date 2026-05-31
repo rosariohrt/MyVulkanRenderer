@@ -19,8 +19,8 @@ class Texture
 
   private:
 	VulkanDevice          &device;
-	vk::raii::Image        TextureImage       = nullptr;
-	vk::raii::DeviceMemory TextureImageMemory = nullptr;
+	vk::raii::Image        textureImage       = nullptr;
+	vk::raii::DeviceMemory textureImageMemory = nullptr;
 
 	std::pair<vk::raii::Image, vk::raii::DeviceMemory>
 	     createImage(uint32_t                width,
