@@ -22,7 +22,8 @@ class Model
 		glm::vec2 position;
 		glm::vec3 color;
 
-		static std::vector<vk::VertexInputBindingDescription> getBindingDescriptions()
+		static std::vector<vk::VertexInputBindingDescription>
+		    getBindingDescriptions()
 		{
 			return {
 			    {
@@ -32,7 +33,8 @@ class Model
 			    },
 			};
 		}
-		static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions()
+		static std::vector<vk::VertexInputAttributeDescription>
+		    getAttributeDescriptions()
 		{
 			return {
 			    {

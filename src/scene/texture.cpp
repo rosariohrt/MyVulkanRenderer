@@ -18,8 +18,7 @@ Texture::Texture(VulkanDevice &device, const std::string &filePath) :
 	createTextureImage(filePath);
 }
 
-std::pair<vk::raii::Image,
-          vk::raii::DeviceMemory>
+std::pair<vk::raii::Image, vk::raii::DeviceMemory>
     Texture::createImage(uint32_t                width,
                          uint32_t                height,
                          vk::Format              format,
@@ -43,11 +42,13 @@ std::pair<vk::raii::Image,
 
 	vk::MemoryRequirements memRequirements = image.getMemoryRequirements();
 	vk::MemoryAllocateInfo allocInfo       = {
-	    .allocationSize  = memRequirements.size,
-	    .memoryTypeIndex = device.findMemoryType(memRequirements.memoryTypeBits, properties),
+	    .allocationSize = memRequirements.size,
+	    .memoryTypeIndex =
+	        device.findMemoryType(memRequirements.memoryTypeBits, properties),
 	};
 
-	vk::raii::DeviceMemory imageMemory = vk::raii::DeviceMemory(device.device(), allocInfo);
+	vk::raii::DeviceMemory imageMemory =
+	    vk::raii::DeviceMemory(device.device(), allocInfo);
 	image.bindMemory(*imageMemory, 0);
 
 	return {std::move(image), std::move(imageMemory)};
@@ -55,22 +56,20 @@ std::pair<vk::raii::Image,
 
 void Texture::createTextureImage(const std::string &filePath)
 {
-	int            texWidth, texHeight, texChannels;
-	stbi_uc       *pixels    = stbi_load(filePath.c_str(),
-	                                     &texWidth,
-	                                     &texHeight,
-	                                     &texChannels,
-	                                     STBI_rgb_alpha);
+	int      texWidth, texHeight, texChannels;
+	stbi_uc *pixels = stbi_load(
+	    filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	vk::DeviceSize imageSize = texWidth * texHeight * 4;
 
 	if (!pixels) {
 		throw std::runtime_error("failed to load texture image!");
 	}
 
-	auto [stagingBuffer, stagingBufferMemory] = device.createBuffer(
-	    imageSize,
-	    vk::BufferUsageFlagBits::eTransferSrc,
-	    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+	auto [stagingBuffer, stagingBufferMemory] =
+	    device.createBuffer(imageSize,
+	                        vk::BufferUsageFlagBits::eTransferSrc,
+	                        vk::MemoryPropertyFlagBits::eHostVisible |
+	                            vk::MemoryPropertyFlagBits::eHostCoherent);
 
 	void *dataStaging = stagingBufferMemory.mapMemory(0, imageSize);
 	memcpy(dataStaging, pixels, imageSize);

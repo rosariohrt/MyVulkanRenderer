@@ -22,8 +22,7 @@ class Texture
 	vk::raii::Image        TextureImage       = nullptr;
 	vk::raii::DeviceMemory TextureImageMemory = nullptr;
 
-	std::pair<vk::raii::Image,
-	          vk::raii::DeviceMemory>
+	std::pair<vk::raii::Image, vk::raii::DeviceMemory>
 	     createImage(uint32_t                width,
 	                 uint32_t                height,
 	                 vk::Format              format,
