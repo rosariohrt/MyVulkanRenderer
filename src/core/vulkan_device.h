@@ -82,10 +82,6 @@ class VulkanDevice
 	{
 		return device_;
 	}
-	Window &getWindow()
-	{
-		return window;
-	}
 	VkSurfaceKHR surface()
 	{
 		return *surface_;
