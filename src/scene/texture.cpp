@@ -16,6 +16,7 @@ Texture::Texture(VulkanDevice &device, const std::string &filePath) :
     device{device}
 {
 	createTextureImage(filePath);
+	createTextureImageView();
 }
 
 std::pair<vk::raii::Image, vk::raii::DeviceMemory>
@@ -102,6 +103,24 @@ void Texture::createTextureImage(const std::string &filePath)
 	device.endSingleTimeCommands(std::move(commandBuffer));
 }
 
+void Texture::createTextureImageView()
+{
+	vk::ImageViewCreateInfo viewInfo = {
+	    .image    = textureImage,
+	    .viewType = vk::ImageViewType::e2D,
+	    .format   = vk::Format::eR8G8B8A8Srgb,
+	    .subresourceRange =
+	        {
+	            .aspectMask     = vk::ImageAspectFlagBits::eColor,
+	            .baseMipLevel   = 0,
+	            .levelCount     = 1,
+	            .baseArrayLayer = 0,
+	            .layerCount     = 1,
+	        },
+	};
+	textureImageView = vk::raii::ImageView(device.device(), viewInfo);
+}
+
 void Texture::transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
                                     const vk::raii::Image   &image,
                                     vk::ImageLayout          oldLayout,
@@ -109,7 +128,7 @@ void Texture::transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
 {
 	vk::ImageMemoryBarrier barrier = {
 	    .oldLayout           = oldLayout,
-	    .newLayout           = newLayout,
+	    .newLayout           = newLayout,  
 	    .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
 	    .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
 	    .image               = image,
