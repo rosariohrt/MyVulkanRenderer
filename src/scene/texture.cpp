@@ -17,6 +17,7 @@ Texture::Texture(VulkanDevice &device, const std::string &filePath) :
 {
 	createTextureImage(filePath);
 	createTextureImageView();
+	createTextureSampler();
 }
 
 std::pair<vk::raii::Image, vk::raii::DeviceMemory>
@@ -121,6 +122,27 @@ void Texture::createTextureImageView()
 	textureImageView = vk::raii::ImageView(device.device(), viewInfo);
 }
 
+void Texture::createTextureSampler()
+{
+	vk::PhysicalDeviceProperties properties =
+	    device.physicalDevice().getProperties();
+
+	vk::SamplerCreateInfo samplerInfo = {
+	    .magFilter               = vk::Filter::eLinear,
+	    .minFilter               = vk::Filter::eLinear,
+	    .mipmapMode              = vk::SamplerMipmapMode::eLinear,
+	    .addressModeU            = vk::SamplerAddressMode::eRepeat,
+	    .addressModeV            = vk::SamplerAddressMode::eRepeat,
+	    .addressModeW            = vk::SamplerAddressMode::eRepeat,
+	    .mipLodBias              = 0.0f,
+	    .anisotropyEnable        = vk::True,
+	    .maxAnisotropy           = properties.limits.maxSamplerAnisotropy,
+	    .compareEnable           = vk::False,
+	    .compareOp               = vk::CompareOp::eAlways,
+	};
+	textureSampler = vk::raii::Sampler(device.device(), samplerInfo);
+}
+
 void Texture::transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
                                     const vk::raii::Image   &image,
                                     vk::ImageLayout          oldLayout,
@@ -128,7 +150,7 @@ void Texture::transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
 {
 	vk::ImageMemoryBarrier barrier = {
 	    .oldLayout           = oldLayout,
-	    .newLayout           = newLayout,  
+	    .newLayout           = newLayout,
 	    .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
 	    .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
 	    .image               = image,

@@ -22,6 +22,7 @@ class Texture
 	vk::raii::Image        textureImage       = nullptr;
 	vk::raii::DeviceMemory textureImageMemory = nullptr;
 	vk::raii::ImageView    textureImageView   = nullptr;
+	vk::raii::Sampler      textureSampler     = nullptr;
 
 	std::pair<vk::raii::Image, vk::raii::DeviceMemory>
 	     createImage(uint32_t                width,
@@ -32,6 +33,7 @@ class Texture
 	                 vk::MemoryPropertyFlags properties);
 	void createTextureImage(const std::string &filePath);
 	void createTextureImageView();
+	void createTextureSampler();
 
 	void transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
 	                           const vk::raii::Image   &image,

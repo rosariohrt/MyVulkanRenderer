@@ -302,7 +302,8 @@ void VulkanDevice::createLogicalDevice()
 	                   vk::PhysicalDeviceVulkan13Features,
 	                   vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
 	    featureChain = {
-	        {},        // vk::PhysicalDeviceFeatures2 (empty for now)
+	        {.features = {.samplerAnisotropy =
+	                          true}},        // vk::PhysicalDeviceFeatures2
 	        {.synchronization2 = true,
 	         .dynamicRendering =
 	             true},        // Enable sync2 and dynamic rendering
@@ -516,8 +517,12 @@ bool VulkanDevice::hasRequiredFeatures(
 	    vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
 
 	bool result =
+	    features.template get<vk::PhysicalDeviceFeatures2>()
+	        .features.samplerAnisotropy &&
 	    features.template get<vk::PhysicalDeviceVulkan13Features>()
 	        .dynamicRendering &&
+	    features.template get<vk::PhysicalDeviceVulkan13Features>()
+	        .synchronization2 &&
 	    features
 	        .template get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>()
 	        .extendedDynamicState;
