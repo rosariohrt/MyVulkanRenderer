@@ -36,7 +36,7 @@ uint32_t VulkanDevice::findMemoryType(uint32_t                typeFilter,
                                       vk::MemoryPropertyFlags properties)
 {
 	vk::PhysicalDeviceMemoryProperties memProperties =
-	    physicalDevice.getMemoryProperties();
+	    physicalDevice_.getMemoryProperties();
 	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 		if ((typeFilter & (1 << i)) &&
 		    (memProperties.memoryTypes[i].propertyFlags & properties) ==
@@ -55,7 +55,7 @@ VkFormat
 {
 	for (VkFormat format : candidates) {
 		VkFormatProperties props;
-		vkGetPhysicalDeviceFormatProperties(*physicalDevice, format, &props);
+		vkGetPhysicalDeviceFormatProperties(*physicalDevice_, format, &props);
 
 		if (tiling == VK_IMAGE_TILING_LINEAR &&
 		    (props.linearTilingFeatures & features) == features) {
@@ -261,8 +261,8 @@ void VulkanDevice::pickPhysicalDevice()
 		          << std::endl;
 
 		if (!found && isDeviceSuitable(candidate)) {
-			physicalDevice     = candidate;
-			queueFamilyIndices = findQueueFamilies(physicalDevice);
+			physicalDevice_    = candidate;
+			queueFamilyIndices = findQueueFamilies(physicalDevice_);
 			found              = true;
 		}
 	}
@@ -271,7 +271,7 @@ void VulkanDevice::pickPhysicalDevice()
 		throw std::runtime_error("Failed to find a suitable GPU!");
 	}
 
-	std::cout << "Selected GPU: " << physicalDevice.getProperties().deviceName
+	std::cout << "Selected GPU: " << physicalDevice_.getProperties().deviceName
 	          << std::endl;
 
 	// TODO: Implement a scoring system to select the most suitable GPU.
@@ -318,7 +318,7 @@ void VulkanDevice::createLogicalDevice()
 	    .ppEnabledExtensionNames = deviceExtensions.data(),
 	};
 
-	device_ = vk::raii::Device(physicalDevice, deviceCreateInfo);
+	device_ = vk::raii::Device(physicalDevice_, deviceCreateInfo);
 
 	graphicsQueue_ =
 	    vk::raii::Queue(device_, queueFamilyIndices.graphicsFamily.value(), 0);
