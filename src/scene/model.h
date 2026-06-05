@@ -2,7 +2,6 @@
 
 #include "constants.h"
 #include "core/vulkan_device.h"
-#include "ubo.h"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -21,8 +20,10 @@ class Model
 	struct Vertex {
 		glm::vec2 position;
 		glm::vec3 color;
+		glm::vec2 texCoord;
 
-		static std::vector<vk::VertexInputBindingDescription> getBindingDescriptions()
+		static std::vector<vk::VertexInputBindingDescription>
+		    getBindingDescriptions()
 		{
 			return {
 			    {
@@ -32,9 +33,10 @@ class Model
 			    },
 			};
 		}
-		static std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions()
+		static std::array<vk::VertexInputAttributeDescription, 3>
+		    getAttributeDescriptions()
 		{
-			return {
+			return {{
 			    {
 			        .location = 0,
 			        .binding  = 0,
@@ -47,7 +49,13 @@ class Model
 			        .format   = vk::Format::eR32G32B32Sfloat,
 			        .offset   = offsetof(Vertex, color),
 			    },
-			};
+			    {
+			        .location = 2,
+			        .binding  = 0,
+			        .format   = vk::Format::eR32G32Sfloat,
+			        .offset   = offsetof(Vertex, texCoord),
+			    },
+			}};
 		}
 	};
 
@@ -59,6 +67,8 @@ class Model
 
 	void bind(vk::CommandBuffer commandBuffer);
 	void draw(vk::CommandBuffer commandBuffer);
+
+	vk::DescriptorBufferInfo getDescriptorBufferInfo(size_t index);
 
 	// Getters
 	vk::raii::Buffer &getUniformBuffers(size_t index)
@@ -82,8 +92,8 @@ class Model
 	std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
 	std::vector<void *>                 uniformBuffersMapped;
 
-	void createVertexBuffers(const std::vector<Vertex> &vertices);
-	void createIndexBuffers(const std::vector<uint16_t> &indices);
+	void createVertexBuffer(const std::vector<Vertex> &vertices);
+	void createIndexBuffer(const std::vector<uint16_t> &indices);
 	void createUniformBuffers();
 };
 

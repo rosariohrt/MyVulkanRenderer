@@ -1,11 +1,11 @@
 #pragma once
 
-#include "constants.h"
 #include "core/pipeline.h"
 #include "core/swap_chain.h"
 #include "core/vulkan_device.h"
 #include "core/window.h"
 #include "scene/model.h"
+#include "scene/texture.h"
 #include "ubo.h"
 
 // std
@@ -36,18 +36,20 @@ class FirstApp
 	void run();
 
   private:
-	Window                               window{WIDTH, HEIGHT, "MyVulkanRenderer"};
-	VulkanDevice                         device{window};
-	std::unique_ptr<SwapChain>           swapChain;
-	vk::raii::DescriptorSetLayout        descriptorSetLayout = nullptr;
-	vk::raii::DescriptorPool             descriptorPool      = nullptr;
+	Window                        window{WIDTH, HEIGHT, "MyVulkanRenderer"};
+	VulkanDevice                  device{window};
+	std::unique_ptr<SwapChain>    swapChain;
+	vk::raii::DescriptorSetLayout descriptorSetLayout = nullptr;
+	vk::raii::DescriptorPool      descriptorPool      = nullptr;
 	std::vector<vk::raii::DescriptorSet> descriptorSets;
 	vk::raii::PipelineLayout             pipelineLayout = nullptr;
 	std::unique_ptr<Pipeline>            pipeline;
 	std::unique_ptr<Model>               model;
+	std::unique_ptr<Texture>             texture;
 	std::vector<vk::raii::CommandBuffer> commandBuffers;
 
 	void loadModel();
+	void loadTexture();
 	void createDescriptorSetLayout();
 	void createDescriptorPool();
 	void createDescriptorSets();
@@ -60,14 +62,13 @@ class FirstApp
 	void drawFrame();
 
 	// Helper Methods
-	void transitionImageLayout(
-	    uint32_t                imageIndex,
-	    vk::ImageLayout         oldLayout,
-	    vk::ImageLayout         newLayout,
-	    vk::AccessFlags2        srcAccessMask,
-	    vk::AccessFlags2        dstAccessMask,
-	    vk::PipelineStageFlags2 srcStageMask,
-	    vk::PipelineStageFlags2 dstStageMask);
+	void transitionImageLayout(uint32_t                imageIndex,
+	                           vk::ImageLayout         oldLayout,
+	                           vk::ImageLayout         newLayout,
+	                           vk::AccessFlags2        srcAccessMask,
+	                           vk::AccessFlags2        dstAccessMask,
+	                           vk::PipelineStageFlags2 srcStageMask,
+	                           vk::PipelineStageFlags2 dstStageMask);
 };
 
 }        // namespace mvr

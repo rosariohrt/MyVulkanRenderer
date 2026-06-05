@@ -44,8 +44,9 @@ class Window
 	int  height;
 	bool framebufferResized = false;
 
-	static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
-	void        initWindow();
+	static void
+	     framebufferResizeCallback(GLFWwindow *window, int width, int height);
+	void initWindow();
 };
 
 }        // namespace mvr
