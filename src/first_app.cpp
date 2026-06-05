@@ -1,6 +1,8 @@
 #include "first_app.h"
+#include "constants.h"
 
 // std
+#include <array>
 #include <cstdint>
 #include <stdexcept>
 
@@ -10,6 +12,7 @@ namespace mvr
 FirstApp::FirstApp()
 {
 	loadModel();
+	loadTexture();
 	createDescriptorSetLayout();
 	createDescriptorPool();
 	createDescriptorSets();
@@ -34,10 +37,11 @@ void FirstApp::run()
 void FirstApp::loadModel()
 {
 	const std::vector<Model::Vertex> vertices{
-	    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-	    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-	    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-	    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+	    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+	    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+	    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+	    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+	};
 
 	const std::vector<uint16_t> indices = {
 	    0,
@@ -51,19 +55,30 @@ void FirstApp::loadModel()
 	model = std::make_unique<Model>(device, vertices, indices);
 }
 
+void FirstApp::loadTexture()
+{
+	texture = std::make_unique<Texture>(device, "textures/texture.jpg");
+}
+
 void FirstApp::createDescriptorSetLayout()
 {
-	vk::DescriptorSetLayoutBinding uboLayoutBinding = {
-	    .binding            = 0,
-	    .descriptorType     = vk::DescriptorType::eUniformBuffer,
-	    .descriptorCount    = 1,
-	    .stageFlags         = vk::ShaderStageFlagBits::eVertex,
-	    .pImmutableSamplers = nullptr,
-	};
-
-	vk::DescriptorSetLayoutCreateInfo layoutInfo = {
-	    .bindingCount = 1,
-	    .pBindings    = &uboLayoutBinding,
+	std::array<vk::DescriptorSetLayoutBinding, 2> bindings   = {{
+	    {
+	        .binding         = 0,
+	        .descriptorType  = vk::DescriptorType::eUniformBuffer,
+	        .descriptorCount = 1,
+	        .stageFlags      = vk::ShaderStageFlagBits::eVertex,
+	    },
+	    {
+	        .binding         = 1,
+	        .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+	        .descriptorCount = 1,
+	        .stageFlags      = vk::ShaderStageFlagBits::eFragment,
+	    },
+	}};
+	vk::DescriptorSetLayoutCreateInfo             layoutInfo = {
+	    .bindingCount = static_cast<uint32_t>(bindings.size()),
+	    .pBindings    = bindings.data(),
 	};
 
 	descriptorSetLayout =
@@ -72,18 +87,23 @@ void FirstApp::createDescriptorSetLayout()
 
 void FirstApp::createDescriptorPool()
 {
-	vk::DescriptorPoolSize poolSize = {
-	    .type            = vk::DescriptorType::eUniformBuffer,
-	    .descriptorCount = MAX_FRAMES_IN_FLIGHT,
-	};
+	std::array<vk::DescriptorPoolSize, 2> poolSize = {{
+	    {
+	        .type            = vk::DescriptorType::eUniformBuffer,
+	        .descriptorCount = MAX_FRAMES_IN_FLIGHT,
+	    },
+	    {
+	        .type            = vk::DescriptorType::eCombinedImageSampler,
+	        .descriptorCount = MAX_FRAMES_IN_FLIGHT,
+	    },
+	}};
 
 	vk::DescriptorPoolCreateInfo poolInfo = {
 	    .flags         = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
 	    .maxSets       = MAX_FRAMES_IN_FLIGHT,
-	    .poolSizeCount = 1,
-	    .pPoolSizes    = &poolSize,
+	    .poolSizeCount = static_cast<uint32_t>(poolSize.size()),
+	    .pPoolSizes    = poolSize.data(),
 	};
-
 	descriptorPool = vk::raii::DescriptorPool(device.device(), poolInfo);
 }
 
@@ -91,30 +111,36 @@ void FirstApp::createDescriptorSets()
 {
 	std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT,
 	                                             *descriptorSetLayout);
-	vk::DescriptorSetAllocateInfo        allocInfo = {
+
+	vk::DescriptorSetAllocateInfo allocInfo = {
 	    .descriptorPool     = *descriptorPool,
 	    .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
 	    .pSetLayouts        = layouts.data(),
 	};
-
 	descriptorSets = device.device().allocateDescriptorSets(allocInfo);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vk::DescriptorBufferInfo bufferInfo = {
-		    .buffer = *model->getUniformBuffers(i),
-		    .offset = 0,
-		    .range  = sizeof(UniformBufferObject),
-		};
+		vk::DescriptorBufferInfo bufferInfo = model->getDescriptorBufferInfo(i);
+		vk::DescriptorImageInfo  imageInfo  = texture->getDescriptorImageInfo();
 
-		vk::WriteDescriptorSet descriptorWrite = {
-		    .dstSet          = *descriptorSets[i],
-		    .dstBinding      = 0,
-		    .dstArrayElement = 0,
-		    .descriptorCount = 1,
-		    .descriptorType  = vk::DescriptorType::eUniformBuffer,
-		    .pBufferInfo     = &bufferInfo,
-		};
-
+		std::array<vk::WriteDescriptorSet, 2> descriptorWrite = {{
+		    {
+		        .dstSet          = *descriptorSets[i],
+		        .dstBinding      = 0,
+		        .dstArrayElement = 0,
+		        .descriptorCount = 1,
+		        .descriptorType  = vk::DescriptorType::eUniformBuffer,
+		        .pBufferInfo     = &bufferInfo,
+		    },
+		    {
+		        .dstSet          = *descriptorSets[i],
+		        .dstBinding      = 1,
+		        .dstArrayElement = 0,
+		        .descriptorCount = 1,
+		        .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+		        .pImageInfo      = &imageInfo,
+		    },
+		}};
 		device.device().updateDescriptorSets(descriptorWrite, {});
 	}
 }

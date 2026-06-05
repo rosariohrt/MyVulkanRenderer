@@ -1,11 +1,11 @@
 #pragma once
 
-#include "constants.h"
 #include "core/pipeline.h"
 #include "core/swap_chain.h"
 #include "core/vulkan_device.h"
 #include "core/window.h"
 #include "scene/model.h"
+#include "scene/texture.h"
 #include "ubo.h"
 
 // std
@@ -45,9 +45,11 @@ class FirstApp
 	vk::raii::PipelineLayout             pipelineLayout = nullptr;
 	std::unique_ptr<Pipeline>            pipeline;
 	std::unique_ptr<Model>               model;
+	std::unique_ptr<Texture>             texture;
 	std::vector<vk::raii::CommandBuffer> commandBuffers;
 
 	void loadModel();
+	void loadTexture();
 	void createDescriptorSetLayout();
 	void createDescriptorPool();
 	void createDescriptorSets();

@@ -2,7 +2,6 @@
 
 #include "constants.h"
 #include "core/vulkan_device.h"
-#include "ubo.h"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -21,6 +20,7 @@ class Model
 	struct Vertex {
 		glm::vec2 position;
 		glm::vec3 color;
+		glm::vec2 texCoord;
 
 		static std::vector<vk::VertexInputBindingDescription>
 		    getBindingDescriptions()
@@ -33,10 +33,10 @@ class Model
 			    },
 			};
 		}
-		static std::vector<vk::VertexInputAttributeDescription>
+		static std::array<vk::VertexInputAttributeDescription, 3>
 		    getAttributeDescriptions()
 		{
-			return {
+			return {{
 			    {
 			        .location = 0,
 			        .binding  = 0,
@@ -49,7 +49,13 @@ class Model
 			        .format   = vk::Format::eR32G32B32Sfloat,
 			        .offset   = offsetof(Vertex, color),
 			    },
-			};
+			    {
+			        .location = 2,
+			        .binding  = 0,
+			        .format   = vk::Format::eR32G32Sfloat,
+			        .offset   = offsetof(Vertex, texCoord),
+			    },
+			}};
 		}
 	};
 
