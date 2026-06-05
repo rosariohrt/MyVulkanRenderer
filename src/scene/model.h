@@ -62,6 +62,8 @@ class Model
 	void bind(vk::CommandBuffer commandBuffer);
 	void draw(vk::CommandBuffer commandBuffer);
 
+	vk::DescriptorBufferInfo getDescriptorBufferInfo(size_t index);
+
 	// Getters
 	vk::raii::Buffer &getUniformBuffers(size_t index)
 	{

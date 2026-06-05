@@ -12,10 +12,11 @@ class Texture
 {
   public:
 	Texture(VulkanDevice &device, const std::string &filePath);
-	~Texture();
 
 	Texture(const Texture &)            = delete;
 	Texture &operator=(const Texture &) = delete;
+
+	vk::DescriptorImageInfo getDescriptorImageInfo() const;
 
   private:
 	VulkanDevice          &device;

@@ -20,6 +20,17 @@ Texture::Texture(VulkanDevice &device, const std::string &filePath) :
 	createTextureSampler();
 }
 
+vk::DescriptorImageInfo Texture::getDescriptorImageInfo() const
+{
+	vk::DescriptorImageInfo imageInfo = {
+	    .sampler     = textureSampler,
+	    .imageView   = textureImageView,
+	    .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+	};
+
+	return imageInfo;
+}
+
 std::pair<vk::raii::Image, vk::raii::DeviceMemory>
     Texture::createImage(uint32_t                width,
                          uint32_t                height,

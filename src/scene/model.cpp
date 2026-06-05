@@ -1,4 +1,5 @@
-#include <scene/model.h>
+#include "scene/model.h"
+#include "ubo.h"
 
 // std
 #include <cassert>
@@ -26,6 +27,17 @@ void Model::bind(vk::CommandBuffer commandBuffer)
 void Model::draw(vk::CommandBuffer commandBuffer)
 {
 	commandBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
+}
+
+vk::DescriptorBufferInfo Model::getDescriptorBufferInfo(size_t index)
+{
+	vk::DescriptorBufferInfo bufferInfo = {
+	    .buffer = *uniformBuffers[index],
+	    .offset = 0,
+	    .range  = sizeof(UniformBufferObject),
+	};
+
+	return bufferInfo;
 }
 
 void Model::createVertexBuffer(const std::vector<Vertex> &vertices)
