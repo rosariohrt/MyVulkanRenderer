@@ -48,23 +48,24 @@ uint32_t VulkanDevice::findMemoryType(uint32_t                typeFilter,
 	throw std::runtime_error("failed to find suitable memory type!");
 }
 
-VkFormat
-    VulkanDevice::findSupportedFormat(const std::vector<VkFormat> &candidates,
-                                      VkImageTiling                tiling,
-                                      VkFormatFeatureFlags         features)
+vk::Format
+    VulkanDevice::findSupportedFormat(const std::vector<vk::Format> &candidates,
+                                      vk::ImageTiling                tiling,
+                                      vk::FormatFeatureFlags         features)
 {
-	for (VkFormat format : candidates) {
-		VkFormatProperties props;
-		vkGetPhysicalDeviceFormatProperties(*physicalDevice_, format, &props);
+	for (const auto format : candidates) {
+		vk::FormatProperties props =
+		    physicalDevice_.getFormatProperties(format);
 
-		if (tiling == VK_IMAGE_TILING_LINEAR &&
+		if (tiling == vk::ImageTiling::eLinear &&
 		    (props.linearTilingFeatures & features) == features) {
 			return format;
-		} else if (tiling == VK_IMAGE_TILING_OPTIMAL &&
+		} else if (tiling == vk::ImageTiling::eOptimal &&
 		           (props.optimalTilingFeatures & features) == features) {
 			return format;
 		}
 	}
+
 	throw std::runtime_error("failed to find supported format!");
 }
 
@@ -159,32 +160,40 @@ void VulkanDevice::copyBufferToImage(vk::raii::CommandBuffer &commandBuffer,
 	    buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
 }
 
-void VulkanDevice::createImageWithInfo(const VkImageCreateInfo &imageInfo,
-                                       vk::MemoryPropertyFlags  properties,
-                                       VkImage                 &image,
-                                       VkDeviceMemory          &imageMemory)
+std::pair<vk::raii::Image, vk::raii::DeviceMemory>
+    VulkanDevice::createImage(uint32_t                width,
+                              uint32_t                height,
+                              vk::Format              format,
+                              vk::ImageTiling         tiling,
+                              vk::ImageUsageFlags     usage,
+                              vk::MemoryPropertyFlags properties)
 {
-	if (vkCreateImage(*device_, &imageInfo, nullptr, &image) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create image!");
-	}
+	vk::ImageCreateInfo imageInfo = {
+	    .imageType   = vk::ImageType::e2D,
+	    .format      = format,
+	    .extent      = {width, height, 1},
+	    .mipLevels   = 1,
+	    .arrayLayers = 1,
+	    .samples     = vk::SampleCountFlagBits::e1,
+	    .tiling      = tiling,
+	    .usage       = usage,
+	    .sharingMode = vk::SharingMode::eExclusive,
+	};
 
-	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(*device_, image, &memRequirements);
+	vk::raii::Image image = vk::raii::Image(device_, imageInfo);
 
-	VkMemoryAllocateInfo allocInfo{};
-	allocInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex =
-	    findMemoryType(memRequirements.memoryTypeBits, properties);
+	vk::MemoryRequirements memRequirements = image.getMemoryRequirements();
+	vk::MemoryAllocateInfo allocInfo       = {
+	    .allocationSize = memRequirements.size,
+	    .memoryTypeIndex =
+	        findMemoryType(memRequirements.memoryTypeBits, properties),
+	};
 
-	if (vkAllocateMemory(*device_, &allocInfo, nullptr, &imageMemory) !=
-	    VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate image memory!");
-	}
+	vk::raii::DeviceMemory imageMemory =
+	    vk::raii::DeviceMemory(device_, allocInfo);
+	image.bindMemory(*imageMemory, 0);
 
-	if (vkBindImageMemory(*device_, image, imageMemory, 0) != VK_SUCCESS) {
-		throw std::runtime_error("failed to bind image memory!");
-	}
+	return {std::move(image), std::move(imageMemory)};
 }
 
 // Private Init Methods

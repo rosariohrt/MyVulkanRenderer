@@ -31,42 +31,6 @@ vk::DescriptorImageInfo Texture::getDescriptorImageInfo() const
 	return imageInfo;
 }
 
-std::pair<vk::raii::Image, vk::raii::DeviceMemory>
-    Texture::createImage(uint32_t                width,
-                         uint32_t                height,
-                         vk::Format              format,
-                         vk::ImageTiling         tiling,
-                         vk::ImageUsageFlags     usage,
-                         vk::MemoryPropertyFlags properties)
-{
-	vk::ImageCreateInfo imageInfo = {
-	    .imageType   = vk::ImageType::e2D,
-	    .format      = format,
-	    .extent      = {width, height, 1},
-	    .mipLevels   = 1,
-	    .arrayLayers = 1,
-	    .samples     = vk::SampleCountFlagBits::e1,
-	    .tiling      = tiling,
-	    .usage       = usage,
-	    .sharingMode = vk::SharingMode::eExclusive,
-	};
-
-	vk::raii::Image image = vk::raii::Image(device.device(), imageInfo);
-
-	vk::MemoryRequirements memRequirements = image.getMemoryRequirements();
-	vk::MemoryAllocateInfo allocInfo       = {
-	    .allocationSize = memRequirements.size,
-	    .memoryTypeIndex =
-	        device.findMemoryType(memRequirements.memoryTypeBits, properties),
-	};
-
-	vk::raii::DeviceMemory imageMemory =
-	    vk::raii::DeviceMemory(device.device(), allocInfo);
-	image.bindMemory(*imageMemory, 0);
-
-	return {std::move(image), std::move(imageMemory)};
-}
-
 void Texture::createTextureImage(const std::string &filePath)
 {
 	int      texWidth, texHeight, texChannels;
@@ -90,7 +54,7 @@ void Texture::createTextureImage(const std::string &filePath)
 
 	stbi_image_free(pixels);
 
-	std::tie(textureImage, textureImageMemory) = createImage(
+	std::tie(textureImage, textureImageMemory) = device.createImage(
 	    texWidth,
 	    texHeight,
 	    vk::Format::eR8G8B8A8Srgb,
