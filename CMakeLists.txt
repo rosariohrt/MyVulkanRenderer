@@ -11,7 +11,7 @@ find_package(glfw3 REQUIRED)
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE src)
+target_include_directories(${PROJECT_NAME} PRIVATE src third_party/stb)
 target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan glfw)
 target_compile_definitions(${PROJECT_NAME} PRIVATE VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS)
 
