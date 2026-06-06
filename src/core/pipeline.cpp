@@ -41,7 +41,6 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format colorFormat,
 	};
 	// viewport
 	configInfo.viewport = vk::PipelineViewportStateCreateInfo{
-	    // TODO: abbreviate this struct declaration
 	    .viewportCount = 1,
 	    .pViewports    = nullptr,
 	    .scissorCount  = 1,
@@ -210,7 +209,7 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	                configInfo.colorAttachmentFormats.size()),
 	            .pColorAttachmentFormats =
 	                configInfo.colorAttachmentFormats.data(),
-				.depthAttachmentFormat = configInfo.depthAttachmentFormat,
+	            .depthAttachmentFormat = configInfo.depthAttachmentFormat,
 	        }};
 
 	graphicsPipeline = vk::raii::Pipeline(

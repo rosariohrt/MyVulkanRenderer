@@ -260,8 +260,8 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	                          vk::PipelineStageFlagBits2::eLateFragmentTests,
 	                      vk::ImageAspectFlagBits::eDepth);
 
-	vk::ClearValue clearColor = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
-	vk::ClearValue clearDepth = vk::ClearDepthStencilValue(1.0f, 0);
+	vk::ClearValue clearColor = vk::ClearColorValue{0.1f, 0.1f, 0.1f, 1.0f};
+	vk::ClearValue clearDepth = vk::ClearDepthStencilValue{1.0f, 0};
 
 	vk::RenderingAttachmentInfo colorAttachmentInfo = {
 	    .imageView   = swapChain->getImageView(imageIndex),
