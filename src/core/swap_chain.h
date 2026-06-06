@@ -15,7 +15,6 @@ class SwapChain
   public:
 	// Constructor & Destructor
 	SwapChain(VulkanDevice &deviceRef, vk::Extent2D windowExtent);
-	~SwapChain();
 
 	SwapChain(const SwapChain &)            = delete;
 	SwapChain &operator=(const SwapChain &) = delete;
@@ -23,22 +22,26 @@ class SwapChain
 	// Public Methods
 	std::pair<vk::Result, uint32_t> acquireNextImage(uint32_t frameIndex);
 	vk::Result
-	         submitCommandBuffers(const vk::raii::CommandBuffer &commandBuffer,
-	                              uint32_t                       imageIndex,
-	                              uint32_t                       frameIndex);
-	VkFormat findDepthFormat();
+	    submitCommandBuffers(const vk::raii::CommandBuffer &commandBuffer,
+	                         uint32_t                       imageIndex,
+	                         uint32_t                       frameIndex);
+	vk::Format findDepthFormat();
 
 	vk::Image getImage(uint32_t index)
 	{
 		return swapChainImages[index];
 	}
+	vk::raii::Image& getDepthImage()
+	{
+		return depthImage;
+	}
 	vk::raii::ImageView &getImageView(uint32_t index)
 	{
 		return swapChainImageViews[index];
 	}
-	size_t imageCount()
+	vk::raii::ImageView &getDepthImageView()
 	{
-		return swapChainImages.size();
+		return depthImageView;
 	}
 	vk::Format getSwapChainSurfaceFormat()
 	{
@@ -89,9 +92,9 @@ class SwapChain
 	std::vector<vk::Image>           swapChainImages;
 	std::vector<vk::raii::ImageView> swapChainImageViews;
 
-	std::vector<VkImage>        depthImages;
-	std::vector<VkDeviceMemory> depthImageMemorys;
-	std::vector<VkImageView>    depthImageViews;
+	vk::raii::Image        depthImage       = nullptr;
+	vk::raii::DeviceMemory depthImageMemory = nullptr;
+	vk::raii::ImageView    depthImageView   = nullptr;
 
 	std::vector<vk::raii::Semaphore> renderFinishedSemaphores;
 	std::vector<vk::raii::Semaphore> imageAvailableSemaphores;

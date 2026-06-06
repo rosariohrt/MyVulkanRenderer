@@ -18,6 +18,7 @@ struct PipelineConfigInfo {
 	vk::PipelineColorBlendAttachmentState    colorBlendAttachment;
 	vk::PipelineColorBlendStateCreateInfo    colorBlend;
 	std::vector<vk::Format>                  colorAttachmentFormats;
+	vk::Format                               depthAttachmentFormat;
 
 	vk::PipelineLayout pipelineLayout;
 
@@ -38,7 +39,8 @@ class Pipeline
 	Pipeline &operator=(const Pipeline &) = delete;
 
 	void bind(const vk::raii::CommandBuffer &commandBuffer);
-	static PipelineConfigInfo defaultPipelineConfigInfo(vk::Format format);
+	static PipelineConfigInfo defaultPipelineConfigInfo(vk::Format colorFormat,
+	                                                     vk::Format depthFormat);
 
   private:
 	static std::vector<char> readFile(const std::string &filePath);

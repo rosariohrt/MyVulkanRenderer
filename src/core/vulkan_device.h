@@ -46,11 +46,11 @@ class VulkanDevice
 	VulkanDevice &operator=(VulkanDevice &&)      = delete;
 
 	// Public Methods
-	uint32_t findMemoryType(uint32_t                typeFilter,
-	                        vk::MemoryPropertyFlags properties);
-	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates,
-	                             VkImageTiling                tiling,
-	                             VkFormatFeatureFlags         features);
+	uint32_t   findMemoryType(uint32_t                typeFilter,
+	                          vk::MemoryPropertyFlags properties);
+	vk::Format findSupportedFormat(const std::vector<vk::Format> &candidates,
+	                               vk::ImageTiling                tiling,
+	                               vk::FormatFeatureFlags         features);
 
 	std::pair<vk::raii::Buffer, vk::raii::DeviceMemory>
 	    createBuffer(vk::DeviceSize          size,
@@ -68,10 +68,17 @@ class VulkanDevice
 	                       vk::raii::Image         &image,
 	                       uint32_t                 width,
 	                       uint32_t                 height);
-	void createImageWithInfo(const VkImageCreateInfo &imageInfo,
-	                         vk::MemoryPropertyFlags  properties,
-	                         VkImage                 &image,
-	                         VkDeviceMemory          &imageMemory);
+
+	std::pair<vk::raii::Image, vk::raii::DeviceMemory>
+	                    createImage(uint32_t                width,
+	                                uint32_t                height,
+	                                vk::Format              format,
+	                                vk::ImageTiling         tiling,
+	                                vk::ImageUsageFlags     usage,
+	                                vk::MemoryPropertyFlags properties);
+	vk::raii::ImageView createImageView(vk::Image const     &image,
+	                                    vk::Format           format,
+	                                    vk::ImageAspectFlags aspectFlags);
 
 	// Getters
 	vk::raii::CommandPool &getCommandPool()
@@ -127,11 +134,11 @@ class VulkanDevice
 	QueueFamilyIndices queueFamilyIndices;
 
 	vk::raii::Context                context;
-	vk::raii::Instance               instance       = nullptr;
-	vk::raii::DebugUtilsMessengerEXT debugMessenger = nullptr;
-	vk::raii::SurfaceKHR             surface_       = nullptr;
+	vk::raii::Instance               instance        = nullptr;
+	vk::raii::DebugUtilsMessengerEXT debugMessenger  = nullptr;
+	vk::raii::SurfaceKHR             surface_        = nullptr;
 	vk::raii::PhysicalDevice         physicalDevice_ = nullptr;
-	vk::raii::Device                 device_        = nullptr;
+	vk::raii::Device                 device_         = nullptr;
 
 	vk::raii::Queue graphicsQueue_ = nullptr;
 	vk::raii::Queue presentQueue_  = nullptr;

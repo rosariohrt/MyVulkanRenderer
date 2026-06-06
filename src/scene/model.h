@@ -18,7 +18,7 @@ class Model
 {
   public:
 	struct Vertex {
-		glm::vec2 position;
+		glm::vec3 pos;
 		glm::vec3 color;
 		glm::vec2 texCoord;
 
@@ -40,8 +40,8 @@ class Model
 			    {
 			        .location = 0,
 			        .binding  = 0,
-			        .format   = vk::Format::eR32G32Sfloat,
-			        .offset   = offsetof(Vertex, position),
+			        .format   = vk::Format::eR32G32B32Sfloat,
+			        .offset   = offsetof(Vertex, pos),
 			    },
 			    {
 			        .location = 1,

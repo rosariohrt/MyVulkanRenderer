@@ -6,6 +6,9 @@
 #include <cstdint>
 #include <stdexcept>
 
+// libs
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace mvr
 {
 
@@ -37,10 +40,15 @@ void FirstApp::run()
 void FirstApp::loadModel()
 {
 	const std::vector<Model::Vertex> vertices{
-	    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-	    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-	    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-	    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+	    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+	    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+	    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+	    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+
+	    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+	    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+	    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+	    {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
 	};
 
 	const std::vector<uint16_t> indices = {
@@ -50,6 +58,13 @@ void FirstApp::loadModel()
 	    2,
 	    3,
 	    0,
+
+	    4,
+	    5,
+	    6,
+	    6,
+	    7,
+	    4,
 	};
 
 	model = std::make_unique<Model>(device, vertices, indices);
@@ -160,7 +175,8 @@ void FirstApp::createPipelineLayout()
 void FirstApp::createPipeline()
 {
 	auto pipelineConfig = Pipeline::defaultPipelineConfigInfo(
-	    swapChain->getSwapChainSurfaceFormat());
+	    swapChain->getSwapChainSurfaceFormat(),
+	    swapChain->findDepthFormat());
 	pipelineConfig.pipelineLayout = *pipelineLayout;
 	pipeline = std::make_unique<Pipeline>(device,
 	                                      "shaders/simple_shader.vert.spv",
@@ -221,31 +237,54 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	auto &commandBuffer = commandBuffers[frameIndex];
 	commandBuffer.begin({});
 
+	// Transition swapchain image to color attachment layout for rendering
 	transitionImageLayout(
-	    imageIndex,
+	    swapChain->getImage(imageIndex),
 	    vk::ImageLayout::eUndefined,
 	    vk::ImageLayout::eColorAttachmentOptimal,
 	    vk::AccessFlagBits2::eNone,                        // srcAccessMask
 	    vk::AccessFlagBits2::eColorAttachmentWrite,        // dstAccessMask
 	    vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // srcStage
-	    vk::PipelineStageFlagBits2::eColorAttachmentOutput         // dstStage
-	);
+	    vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // dstStage
+	    vk::ImageAspectFlagBits::eColor);
+
+	// Transition depth image to depth attachment layout for depth testing
+	transitionImageLayout(*swapChain->getDepthImage(),
+	                      vk::ImageLayout::eUndefined,
+	                      vk::ImageLayout::eDepthAttachmentOptimal,
+	                      vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+	                      vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+	                      vk::PipelineStageFlagBits2::eEarlyFragmentTests |
+	                          vk::PipelineStageFlagBits2::eLateFragmentTests,
+	                      vk::PipelineStageFlagBits2::eEarlyFragmentTests |
+	                          vk::PipelineStageFlagBits2::eLateFragmentTests,
+	                      vk::ImageAspectFlagBits::eDepth);
 
 	vk::ClearValue clearColor = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
-	vk::RenderingAttachmentInfo attachmentInfo = {
+	vk::ClearValue clearDepth = vk::ClearDepthStencilValue(1.0f, 0);
+
+	vk::RenderingAttachmentInfo colorAttachmentInfo = {
 	    .imageView   = swapChain->getImageView(imageIndex),
 	    .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
 	    .loadOp      = vk::AttachmentLoadOp::eClear,
 	    .storeOp     = vk::AttachmentStoreOp::eStore,
 	    .clearValue  = clearColor,
 	};
+	vk::RenderingAttachmentInfo depthAttachmentInfo = {
+	    .imageView   = swapChain->getDepthImageView(),
+	    .imageLayout = vk::ImageLayout::eDepthAttachmentOptimal,
+	    .loadOp      = vk::AttachmentLoadOp::eClear,
+	    .storeOp     = vk::AttachmentStoreOp::eDontCare,
+	    .clearValue  = clearDepth,
+	};
+
 	vk::RenderingInfo renderingInfo = {
 	    .renderArea           = {.offset = {0, 0},
 	                             .extent = swapChain->getSwapChainExtent()},
 	    .layerCount           = 1,
 	    .colorAttachmentCount = 1,
-	    .pColorAttachments    = &attachmentInfo,
-	    .pDepthAttachment     = nullptr,
+	    .pColorAttachments    = &colorAttachmentInfo,
+	    .pDepthAttachment     = &depthAttachmentInfo,
 	    .pStencilAttachment   = nullptr,
 	};
 
@@ -263,25 +302,27 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	commandBuffer.endRendering();
 
 	transitionImageLayout(
-	    imageIndex,
+	    swapChain->getImage(imageIndex),
 	    vk::ImageLayout::eColorAttachmentOptimal,
 	    vk::ImageLayout::ePresentSrcKHR,
 	    vk::AccessFlagBits2::eColorAttachmentWrite,        // srcAccessMask
 	    vk::AccessFlagBits2::eNone,                        // dstAccessMask
 	    vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // srcStage
-	    vk::PipelineStageFlagBits2::eBottomOfPipe                  // dstStage
+	    vk::PipelineStageFlagBits2::eBottomOfPipe,                  // dstStage
+		vk::ImageAspectFlagBits::eColor
 	);
 
 	commandBuffer.end();
 }
 
-void FirstApp::transitionImageLayout(uint32_t                imageIndex,
+void FirstApp::transitionImageLayout(vk::Image               image,
                                      vk::ImageLayout         oldLayout,
                                      vk::ImageLayout         newLayout,
                                      vk::AccessFlags2        srcAccessMask,
                                      vk::AccessFlags2        dstAccessMask,
                                      vk::PipelineStageFlags2 srcStageMask,
-                                     vk::PipelineStageFlags2 dstStageMask)
+                                     vk::PipelineStageFlags2 dstStageMask,
+                                     vk::ImageAspectFlags    asppectFlags)
 {
 	vk::ImageMemoryBarrier2 barrier = {
 	    .srcStageMask        = srcStageMask,
@@ -292,10 +333,10 @@ void FirstApp::transitionImageLayout(uint32_t                imageIndex,
 	    .newLayout           = newLayout,
 	    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 	    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-	    .image               = swapChain->getImage(imageIndex),
+	    .image               = image,
 	    .subresourceRange =
 	        {
-	            .aspectMask     = vk::ImageAspectFlagBits::eColor,
+	            .aspectMask     = asppectFlags,
 	            .baseMipLevel   = 0,
 	            .levelCount     = 1,
 	            .baseArrayLayer = 0,

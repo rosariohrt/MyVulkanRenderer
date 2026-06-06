@@ -29,7 +29,8 @@ void Pipeline::bind(const vk::raii::CommandBuffer &commandBuffer)
 	                           *graphicsPipeline);
 }
 
-PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
+PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format colorFormat,
+                                                       vk::Format depthFormat)
 {
 	PipelineConfigInfo configInfo{};
 
@@ -70,8 +71,8 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	};
 	// depthStencilInfo
 	configInfo.depthStencil = {
-	    .depthTestEnable       = vk::False,
-	    .depthWriteEnable      = vk::False,
+	    .depthTestEnable       = vk::True,
+	    .depthWriteEnable      = vk::True,
 	    .depthCompareOp        = vk::CompareOp::eLess,
 	    .depthBoundsTestEnable = vk::False,
 	    .stencilTestEnable     = vk::False,
@@ -105,7 +106,8 @@ PipelineConfigInfo Pipeline::defaultPipelineConfigInfo(vk::Format format)
 	    .blendConstants = blendConstants,
 	};
 	// rendering formats
-	configInfo.colorAttachmentFormats = {format};
+	configInfo.colorAttachmentFormats = {colorFormat};
+	configInfo.depthAttachmentFormat  = depthFormat;
 
 	// dynamicState
 	configInfo.dynamicStates = {
@@ -208,6 +210,7 @@ void Pipeline::createGraphicsPipeline(const std::string        &vertFilePath,
 	                configInfo.colorAttachmentFormats.size()),
 	            .pColorAttachmentFormats =
 	                configInfo.colorAttachmentFormats.data(),
+				.depthAttachmentFormat = configInfo.depthAttachmentFormat,
 	        }};
 
 	graphicsPipeline = vk::raii::Pipeline(

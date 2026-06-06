@@ -25,13 +25,6 @@ class Texture
 	vk::raii::ImageView    textureImageView   = nullptr;
 	vk::raii::Sampler      textureSampler     = nullptr;
 
-	std::pair<vk::raii::Image, vk::raii::DeviceMemory>
-	     createImage(uint32_t                width,
-	                 uint32_t                height,
-	                 vk::Format              format,
-	                 vk::ImageTiling         tiling,
-	                 vk::ImageUsageFlags     usage,
-	                 vk::MemoryPropertyFlags properties);
 	void createTextureImage(const std::string &filePath);
 	void createTextureImageView();
 	void createTextureSampler();
