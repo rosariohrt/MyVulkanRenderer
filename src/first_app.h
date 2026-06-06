@@ -4,6 +4,7 @@
 #include "core/swap_chain.h"
 #include "core/vulkan_device.h"
 #include "core/window.h"
+#include "scene/camera.h"
 #include "scene/model.h"
 #include "scene/texture.h"
 #include "ubo.h"
@@ -33,11 +34,12 @@ class FirstApp
 	void run();
 
   private:
-	Window                        window{WIDTH, HEIGHT, "MyVulkanRenderer"};
-	VulkanDevice                  device{window};
-	std::unique_ptr<SwapChain>    swapChain;
-	vk::raii::DescriptorSetLayout descriptorSetLayout = nullptr;
-	vk::raii::DescriptorPool      descriptorPool      = nullptr;
+	Window       window{WIDTH, HEIGHT, "MyVulkanRenderer"};
+	VulkanDevice device{window};
+	Camera camera{{2.0f, 2.0f, 2.0f}, {0.0f, 0.0f, 1.0f}, -135.0f, -35.26f};
+	std::unique_ptr<SwapChain>           swapChain;
+	vk::raii::DescriptorSetLayout        descriptorSetLayout = nullptr;
+	vk::raii::DescriptorPool             descriptorPool      = nullptr;
 	std::vector<vk::raii::DescriptorSet> descriptorSets;
 	vk::raii::PipelineLayout             pipelineLayout = nullptr;
 	std::unique_ptr<Pipeline>            pipeline;
@@ -59,7 +61,7 @@ class FirstApp
 	void drawFrame();
 
 	// Helper Methods
-	void transitionImageLayout(vk::Image         image,
+	void transitionImageLayout(vk::Image               image,
 	                           vk::ImageLayout         oldLayout,
 	                           vk::ImageLayout         newLayout,
 	                           vk::AccessFlags2        srcAccessMask,
