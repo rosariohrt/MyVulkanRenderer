@@ -23,15 +23,6 @@ SwapChain::SwapChain(VulkanDevice &device, vk::Extent2D windowExtent) :
 	createSyncObjects();
 }
 
-SwapChain::~SwapChain()
-{
-	for (int i = 0; i < depthImages.size(); i++) {
-		vkDestroyImageView(*device.device(), depthImageViews[i], nullptr);
-		vkDestroyImage(*device.device(), depthImages[i], nullptr);
-		vkFreeMemory(*device.device(), depthImageMemorys[i], nullptr);
-	}
-}
-
 // Public Methods
 
 std::pair<vk::Result, uint32_t> SwapChain::acquireNextImage(uint32_t frameIndex)
@@ -78,14 +69,14 @@ vk::Result SwapChain::submitCommandBuffers(
 	return device.presentQueue().presentKHR(presentInfoKHR);
 }
 
-VkFormat SwapChain::findDepthFormat()
+vk::Format SwapChain::findDepthFormat()
 {
 	return device.findSupportedFormat(
-	    {VK_FORMAT_D32_SFLOAT,
-	     VK_FORMAT_D32_SFLOAT_S8_UINT,
-	     VK_FORMAT_D24_UNORM_S8_UINT},
-	    VK_IMAGE_TILING_OPTIMAL,
-	    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	    {vk::Format::eD32Sfloat,
+	     vk::Format::eD32SfloatS8Uint,
+	     vk::Format::eD24UnormS8Uint},
+	    vk::ImageTiling::eOptimal,
+	    vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
 // Private Init Methods
@@ -150,52 +141,18 @@ void SwapChain::createImageViews()
 
 void SwapChain::createDepthResources()
 {
-	VkFormat   depthFormat     = findDepthFormat();
-	VkExtent2D swapChainExtent = getSwapChainExtent();
+	vk::Format   depthFormat     = findDepthFormat();
+	vk::Extent2D swapChainExtent = getSwapChainExtent();
 
-	depthImages.resize(imageCount());
-	depthImageMemorys.resize(imageCount());
-	depthImageViews.resize(imageCount());
-
-	for (int i = 0; i < depthImages.size(); i++) {
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType     = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width  = swapChainExtent.width;
-		imageInfo.extent.height = swapChainExtent.height;
-		imageInfo.extent.depth  = 1;
-		imageInfo.mipLevels     = 1;
-		imageInfo.arrayLayers   = 1;
-		imageInfo.format        = depthFormat;
-		imageInfo.tiling        = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage         = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.flags         = 0;
-
-		device.createImageWithInfo(imageInfo,
-		                           vk::MemoryPropertyFlagBits::eDeviceLocal,
-		                           depthImages[i],
-		                           depthImageMemorys[i]);
-
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType    = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image    = depthImages[i];
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format   = depthFormat;
-		viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_DEPTH_BIT;
-		viewInfo.subresourceRange.baseMipLevel   = 0;
-		viewInfo.subresourceRange.levelCount     = 1;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount     = 1;
-
-		if (vkCreateImageView(
-		        *device.device(), &viewInfo, nullptr, &depthImageViews[i]) !=
-		    VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture image view!");
-		}
-	}
+	std::tie(depthImage, depthImageMemory) =
+	    device.createImage(swapChainExtent.width,
+	                       swapChainExtent.height,
+	                       depthFormat,
+	                       vk::ImageTiling::eOptimal,
+	                       vk::ImageUsageFlagBits::eDepthStencilAttachment,
+	                       vk::MemoryPropertyFlagBits::eDeviceLocal);
+	depthImageView = device.createImageView(
+	    depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 }
 
 void SwapChain::createSyncObjects()
