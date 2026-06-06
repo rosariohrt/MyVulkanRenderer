@@ -128,14 +128,11 @@ void SwapChain::createImageViews()
 {
 	assert(swapChainImageViews.empty());
 
-	vk::ImageViewCreateInfo viewInfo = {
-	    .viewType         = vk::ImageViewType::e2D,
-	    .format           = swapChainSurfaceFormat.format,
-	    .subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1}};
-
 	for (auto &image : swapChainImages) {
-		viewInfo.image = image;
-		swapChainImageViews.emplace_back(device.device(), viewInfo);
+		swapChainImageViews.push_back(
+		    device.createImageView(image,
+		                           swapChainSurfaceFormat.format,
+		                           vk::ImageAspectFlagBits::eColor));
 	}
 }
 
@@ -152,7 +149,7 @@ void SwapChain::createDepthResources()
 	                       vk::ImageUsageFlagBits::eDepthStencilAttachment,
 	                       vk::MemoryPropertyFlagBits::eDeviceLocal);
 	depthImageView = device.createImageView(
-	    depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
+	    *depthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 }
 
 void SwapChain::createSyncObjects()

@@ -76,9 +76,9 @@ class VulkanDevice
 	                                vk::ImageTiling         tiling,
 	                                vk::ImageUsageFlags     usage,
 	                                vk::MemoryPropertyFlags properties);
-	vk::raii::ImageView createImageView(vk::raii::Image const &image,
-	                                    vk::Format             format,
-	                                    vk::ImageAspectFlags   aspectFlags);
+	vk::raii::ImageView createImageView(vk::Image const     &image,
+	                                    vk::Format           format,
+	                                    vk::ImageAspectFlags aspectFlags);
 
 	// Getters
 	vk::raii::CommandPool &getCommandPool()

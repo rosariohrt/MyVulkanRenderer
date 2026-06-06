@@ -81,20 +81,9 @@ void Texture::createTextureImage(const std::string &filePath)
 
 void Texture::createTextureImageView()
 {
-	vk::ImageViewCreateInfo viewInfo = {
-	    .image    = textureImage,
-	    .viewType = vk::ImageViewType::e2D,
-	    .format   = vk::Format::eR8G8B8A8Srgb,
-	    .subresourceRange =
-	        {
-	            .aspectMask     = vk::ImageAspectFlagBits::eColor,
-	            .baseMipLevel   = 0,
-	            .levelCount     = 1,
-	            .baseArrayLayer = 0,
-	            .layerCount     = 1,
-	        },
-	};
-	textureImageView = vk::raii::ImageView(device.device(), viewInfo);
+	textureImageView = device.createImageView(*textureImage,
+	                                          vk::Format::eR8G8B8A8Srgb,
+	                                          vk::ImageAspectFlagBits::eColor);
 }
 
 void Texture::createTextureSampler()
