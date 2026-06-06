@@ -14,9 +14,6 @@
 #include <memory>
 #include <vector>
 
-// libs
-#include <glm/gtc/matrix_transform.hpp>
-
 namespace mvr
 {
 

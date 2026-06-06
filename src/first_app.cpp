@@ -6,6 +6,9 @@
 #include <cstdint>
 #include <stdexcept>
 
+// libs
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace mvr
 {
 
@@ -41,6 +44,11 @@ void FirstApp::loadModel()
 	    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
 	    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
 	    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+
+	    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+	    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+	    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+	    {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
 	};
 
 	const std::vector<uint16_t> indices = {
@@ -50,6 +58,13 @@ void FirstApp::loadModel()
 	    2,
 	    3,
 	    0,
+
+	    4,
+	    5,
+	    6,
+	    6,
+	    7,
+	    4,
 	};
 
 	model = std::make_unique<Model>(device, vertices, indices);
