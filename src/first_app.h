@@ -59,13 +59,14 @@ class FirstApp
 	void drawFrame();
 
 	// Helper Methods
-	void transitionImageLayout(uint32_t                imageIndex,
+	void transitionImageLayout(vk::Image         image,
 	                           vk::ImageLayout         oldLayout,
 	                           vk::ImageLayout         newLayout,
 	                           vk::AccessFlags2        srcAccessMask,
 	                           vk::AccessFlags2        dstAccessMask,
 	                           vk::PipelineStageFlags2 srcStageMask,
-	                           vk::PipelineStageFlags2 dstStageMask);
+	                           vk::PipelineStageFlags2 dstStageMask,
+	                           vk::ImageAspectFlags    aspectFlags);
 };
 
 }        // namespace mvr

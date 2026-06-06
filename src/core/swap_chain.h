@@ -31,13 +31,17 @@ class SwapChain
 	{
 		return swapChainImages[index];
 	}
+	vk::raii::Image& getDepthImage()
+	{
+		return depthImage;
+	}
 	vk::raii::ImageView &getImageView(uint32_t index)
 	{
 		return swapChainImageViews[index];
 	}
-	size_t imageCount()
+	vk::raii::ImageView &getDepthImageView()
 	{
-		return swapChainImages.size();
+		return depthImageView;
 	}
 	vk::Format getSwapChainSurfaceFormat()
 	{
