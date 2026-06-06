@@ -12,9 +12,6 @@ brew install cmake ninja
 echo "Installing graphics and math libraries..."
 brew install glfw glm
 
-echo "Installing model and data loaders..."
-brew install tinyobjloader tinygltf nlohmann-json
-
 echo "Setting up compiler tools..."
 xcode-select --install 2>/dev/null || echo "Compiler tools already present."
 
