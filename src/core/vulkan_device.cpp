@@ -197,7 +197,7 @@ std::pair<vk::raii::Image, vk::raii::DeviceMemory>
 }
 
 vk::raii::ImageView VulkanDevice::createImageView(
-    vk::raii::Image &image, vk::Format format, vk::ImageAspectFlags aspectFlags)
+    vk::raii::Image const &image, vk::Format format, vk::ImageAspectFlags aspectFlags)
 {
 	vk::ImageViewCreateInfo viewInfo = {
 	    .image    = image,

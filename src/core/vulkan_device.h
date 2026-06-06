@@ -70,15 +70,15 @@ class VulkanDevice
 	                       uint32_t                 height);
 
 	std::pair<vk::raii::Image, vk::raii::DeviceMemory>
-	    createImage(uint32_t                width,
-	                uint32_t                height,
-	                vk::Format              format,
-	                vk::ImageTiling         tiling,
-	                vk::ImageUsageFlags     usage,
-	                vk::MemoryPropertyFlags properties);
-	vk::raii::ImageView createImageView(vk::raii::Image     &image,
-	                                    vk::Format           format,
-	                                    vk::ImageAspectFlags aspectFlags);
+	                    createImage(uint32_t                width,
+	                                uint32_t                height,
+	                                vk::Format              format,
+	                                vk::ImageTiling         tiling,
+	                                vk::ImageUsageFlags     usage,
+	                                vk::MemoryPropertyFlags properties);
+	vk::raii::ImageView createImageView(vk::raii::Image const &image,
+	                                    vk::Format             format,
+	                                    vk::ImageAspectFlags   aspectFlags);
 
 	// Getters
 	vk::raii::CommandPool &getCommandPool()
