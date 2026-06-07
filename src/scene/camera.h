@@ -29,6 +29,7 @@ class Camera
 	                          float yOffset,
 	                          bool  constrainPitch = true);
 	void processMouseScrollZoom(float yOffset);
+	void processMouseScrollVertical(float yOffset);
 
 	// Getters
 	glm::vec3 getPosition() const
@@ -55,6 +56,7 @@ class Camera
 	float     movementSpeed;
 	float     mouseSensitivity;
 	float     scrollSensitivity;
+	float     scrollMoveSensitivity;
 	float     zoom;
 
 	void updateCameraVectors();

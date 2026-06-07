@@ -27,6 +27,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 target, glm::vec3 up) :
     movementSpeed{5.0f},
     mouseSensitivity{0.15f},
     scrollSensitivity{1.5f},
+    scrollMoveSensitivity{0.1f},
     zoom{45.0f}
 {
 	updateCameraVectors();
@@ -91,6 +92,11 @@ void Camera::updateCameraVectors()
 	});
 	right = glm::normalize(glm::cross(front, worldUp));
 	up    = glm::normalize(glm::cross(right, front));
+}
+
+void Camera::processMouseScrollVertical(float yOffset)
+{
+	position += worldUp * yOffset * scrollMoveSensitivity;
 }
 
 }        // namespace mvr

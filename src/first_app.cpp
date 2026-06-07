@@ -109,7 +109,11 @@ void FirstApp::processInput(float deltaTime)
 		camera.processMouseMovement(delta.x, -delta.y);
 	}
 
-	camera.processMouseScrollZoom(input.consumeScrollDelta());
+	if (input.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+		camera.processMouseScrollVertical(input.consumeScrollDelta());
+	} else {
+		camera.processMouseScrollZoom(input.consumeScrollDelta());
+	}
 }
 
 void FirstApp::loadModel()
