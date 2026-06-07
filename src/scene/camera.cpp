@@ -5,11 +5,25 @@
 namespace mvr
 {
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) :
+namespace
+{
+// Derive yaw/pitch (degrees) from a normalized direction in the Z-up
+// convention used by updateCameraVectors().
+float yawFromDirection(glm::vec3 dir)
+{
+	return glm::degrees(glm::atan(dir.y, dir.x));
+}
+float pitchFromDirection(glm::vec3 dir)
+{
+	return glm::degrees(glm::asin(dir.z));
+}
+}        // namespace
+
+Camera::Camera(glm::vec3 position, glm::vec3 target, glm::vec3 up) :
     position{position},
     worldUp{up},
-    yaw{yaw},
-    pitch{pitch},
+    yaw{yawFromDirection(glm::normalize(target - position))},
+    pitch{pitchFromDirection(glm::normalize(target - position))},
     movementSpeed{5.0f},
     mouseSensitivity{0.15f},
     scrollSensitivity{0.20f},

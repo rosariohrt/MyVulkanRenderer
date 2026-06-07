@@ -36,7 +36,7 @@ class FirstApp
   private:
 	Window       window{WIDTH, HEIGHT, "MyVulkanRenderer"};
 	VulkanDevice device{window};
-	Camera camera{{2.0f, 2.0f, 2.0f}, {0.0f, 0.0f, 1.0f}, -135.0f, -35.26f};
+	Camera camera{{2.0f, 2.0f, 2.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	std::unique_ptr<SwapChain>           swapChain;
 	vk::raii::DescriptorSetLayout        descriptorSetLayout = nullptr;
 	vk::raii::DescriptorPool             descriptorPool      = nullptr;
