@@ -36,6 +36,11 @@ class Window
 
 	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
+	GLFWwindow *getGLFWwindow() const
+	{
+		return window;
+	}
+
   private:
 	GLFWwindow *window;
 	std::string windowName;
