@@ -20,6 +20,10 @@ class Window
 	Window(const Window &)            = delete;
 	Window &operator=(const Window &) = delete;
 
+	void setShouldClose(bool value);
+	void resetWindowResizedFlag();
+	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+
 	bool shouldClose()
 	{
 		return glfwWindowShouldClose(window);
@@ -32,9 +36,6 @@ class Window
 	{
 		return framebufferResized;
 	}
-	void resetWindowResizedFlag();
-
-	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
 	GLFWwindow *getGLFWwindow() const
 	{
@@ -49,9 +50,9 @@ class Window
 	int  height;
 	bool framebufferResized = false;
 
-	static void
-	     framebufferResizeCallback(GLFWwindow *window, int width, int height);
 	void initWindow();
+	static void
+	    framebufferResizeCallback(GLFWwindow *window, int width, int height);
 };
 
 }        // namespace mvr

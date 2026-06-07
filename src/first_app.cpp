@@ -94,6 +94,10 @@ void FirstApp::run()
 
 void FirstApp::processInput(float deltaTime)
 {
+	if (input.isKeyPressed(GLFW_KEY_ESCAPE)) {
+		window.setShouldClose(true);
+	}
+
 	if (input.isKeyPressed(GLFW_KEY_W))
 		camera.processKeyboard(CameraMovement::Forward, deltaTime);
 	if (input.isKeyPressed(GLFW_KEY_S))
