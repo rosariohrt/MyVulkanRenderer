@@ -61,7 +61,9 @@ void Camera::processMouseMovement(float xOffset,
                                   float yOffset,
                                   bool  constrainPitch)
 {
-	yaw += xOffset * mouseSensitivity;
+	// Z-up: increasing yaw rotates CCW (seenÅ@from above),
+	// so subtract to makeÅ@mouse-right turn right.
+	yaw -= xOffset * mouseSensitivity;
 	pitch += yOffset * mouseSensitivity;
 
 	if (constrainPitch) {
