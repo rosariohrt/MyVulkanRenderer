@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/input_manager.h"
 #include "core/pipeline.h"
 #include "core/swap_chain.h"
 #include "core/vulkan_device.h"
@@ -36,6 +37,7 @@ class FirstApp
   private:
 	Window       window{WIDTH, HEIGHT, "MyVulkanRenderer"};
 	VulkanDevice device{window};
+	InputManager input{window};
 	Camera camera{{2.0f, 2.0f, 2.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	std::unique_ptr<SwapChain>           swapChain;
 	vk::raii::DescriptorSetLayout        descriptorSetLayout = nullptr;
@@ -47,6 +49,7 @@ class FirstApp
 	std::unique_ptr<Texture>             texture;
 	std::vector<vk::raii::CommandBuffer> commandBuffers;
 
+	void processInput(float deltaTime);
 	void loadModel();
 	void loadTexture();
 	void createDescriptorSetLayout();

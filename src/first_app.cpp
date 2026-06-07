@@ -71,12 +71,45 @@ FirstApp::~FirstApp()
 
 void FirstApp::run()
 {
+	auto lastTime = std::chrono::high_resolution_clock::now();
+
 	while (!window.shouldClose()) {
 		glfwPollEvents();
+
+		auto  currentTime = std::chrono::high_resolution_clock::now();
+		float deltaTime =
+		    std::chrono::duration<float, std::chrono::seconds::period>(
+		        currentTime - lastTime)
+		        .count();
+		lastTime = currentTime;
+
+		input.update();
+		processInput(deltaTime);
+
 		drawFrame();
 	}
 
 	device.device().waitIdle();
+}
+
+void FirstApp::processInput(float deltaTime)
+{
+	if (input.isKeyPressed(GLFW_KEY_W))
+		camera.processKeyboard(CameraMovement::Forward, deltaTime);
+	if (input.isKeyPressed(GLFW_KEY_S))
+		camera.processKeyboard(CameraMovement::Backward, deltaTime);
+	if (input.isKeyPressed(GLFW_KEY_A))
+		camera.processKeyboard(CameraMovement::Left, deltaTime);
+	if (input.isKeyPressed(GLFW_KEY_D))
+		camera.processKeyboard(CameraMovement::Right, deltaTime);
+
+	if (input.isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+		glm::vec2 delta = input.getMouseDelta();
+		// Screen y grows downward; negate so moving up looks up.
+		camera.processMouseMovement(delta.x, -delta.y);
+	}
+
+	camera.processMouseScrollZoom(input.consumeScrollDelta());
 }
 
 void FirstApp::loadModel()

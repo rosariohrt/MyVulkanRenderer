@@ -26,7 +26,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 target, glm::vec3 up) :
     pitch{pitchFromDirection(glm::normalize(target - position))},
     movementSpeed{5.0f},
     mouseSensitivity{0.15f},
-    scrollSensitivity{0.20f},
+    scrollSensitivity{1.5f},
     zoom{45.0f}
 {
 	updateCameraVectors();
