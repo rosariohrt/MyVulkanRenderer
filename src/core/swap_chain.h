@@ -31,7 +31,7 @@ class SwapChain
 	{
 		return swapChainImages[index];
 	}
-	vk::raii::Image& getDepthImage()
+	vk::raii::Image &getDepthImage()
 	{
 		return depthImage;
 	}

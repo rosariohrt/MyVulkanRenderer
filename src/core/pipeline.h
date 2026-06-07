@@ -40,7 +40,7 @@ class Pipeline
 
 	void bind(const vk::raii::CommandBuffer &commandBuffer);
 	static PipelineConfigInfo defaultPipelineConfigInfo(vk::Format colorFormat,
-	                                                     vk::Format depthFormat);
+	                                                    vk::Format depthFormat);
 
   private:
 	static std::vector<char> readFile(const std::string &filePath);
