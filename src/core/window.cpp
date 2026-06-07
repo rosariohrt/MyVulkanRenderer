@@ -18,6 +18,11 @@ Window::~Window()
 	glfwTerminate();
 }
 
+void Window::setShouldClose(bool value)
+{
+	glfwSetWindowShouldClose(window, value);
+}
+
 void Window::resetWindowResizedFlag()
 {
 	framebufferResized = false;

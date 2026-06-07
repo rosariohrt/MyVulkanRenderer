@@ -12,6 +12,53 @@
 namespace mvr
 {
 
+namespace
+{
+void transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
+                           const vk::raii::Image   &image,
+                           vk::ImageLayout          oldLayout,
+                           vk::ImageLayout          newLayout)
+{
+	vk::ImageMemoryBarrier barrier = {
+	    .oldLayout           = oldLayout,
+	    .newLayout           = newLayout,
+	    .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+	    .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+	    .image               = image,
+	    .subresourceRange =
+	        {
+	            .aspectMask = vk::ImageAspectFlagBits::eColor,
+	            .levelCount = 1,
+	            .layerCount = 1,
+	        },
+	};
+
+	vk::PipelineStageFlags sourceStage;
+	vk::PipelineStageFlags destinationStage;
+
+	if (oldLayout == vk::ImageLayout::eUndefined &&
+	    newLayout == vk::ImageLayout::eTransferDstOptimal) {
+		barrier.srcAccessMask = {};
+		barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+
+		sourceStage      = vk::PipelineStageFlagBits::eTopOfPipe;
+		destinationStage = vk::PipelineStageFlagBits::eTransfer;
+	} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal &&
+	           newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+
+		sourceStage      = vk::PipelineStageFlagBits::eTransfer;
+		destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+	} else {
+		throw std::invalid_argument("unsupported layout transition!");
+	}
+
+	commandBuffer.pipelineBarrier(
+	    sourceStage, destinationStage, {}, {}, nullptr, barrier);
+}
+}        // namespace
+
 Texture::Texture(VulkanDevice &device, const std::string &filePath) :
     device{device}
 {
@@ -92,63 +139,19 @@ void Texture::createTextureSampler()
 	    device.physicalDevice().getProperties();
 
 	vk::SamplerCreateInfo samplerInfo = {
-	    .magFilter               = vk::Filter::eLinear,
-	    .minFilter               = vk::Filter::eLinear,
-	    .mipmapMode              = vk::SamplerMipmapMode::eLinear,
-	    .addressModeU            = vk::SamplerAddressMode::eRepeat,
-	    .addressModeV            = vk::SamplerAddressMode::eRepeat,
-	    .addressModeW            = vk::SamplerAddressMode::eRepeat,
-	    .mipLodBias              = 0.0f,
-	    .anisotropyEnable        = vk::True,
-	    .maxAnisotropy           = properties.limits.maxSamplerAnisotropy,
-	    .compareEnable           = vk::False,
-	    .compareOp               = vk::CompareOp::eAlways,
+	    .magFilter        = vk::Filter::eLinear,
+	    .minFilter        = vk::Filter::eLinear,
+	    .mipmapMode       = vk::SamplerMipmapMode::eLinear,
+	    .addressModeU     = vk::SamplerAddressMode::eRepeat,
+	    .addressModeV     = vk::SamplerAddressMode::eRepeat,
+	    .addressModeW     = vk::SamplerAddressMode::eRepeat,
+	    .mipLodBias       = 0.0f,
+	    .anisotropyEnable = vk::True,
+	    .maxAnisotropy    = properties.limits.maxSamplerAnisotropy,
+	    .compareEnable    = vk::False,
+	    .compareOp        = vk::CompareOp::eAlways,
 	};
 	textureSampler = vk::raii::Sampler(device.device(), samplerInfo);
-}
-
-void Texture::transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
-                                    const vk::raii::Image   &image,
-                                    vk::ImageLayout          oldLayout,
-                                    vk::ImageLayout          newLayout)
-{
-	vk::ImageMemoryBarrier barrier = {
-	    .oldLayout           = oldLayout,
-	    .newLayout           = newLayout,
-	    .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
-	    .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
-	    .image               = image,
-	    .subresourceRange =
-	        {
-	            .aspectMask = vk::ImageAspectFlagBits::eColor,
-	            .levelCount = 1,
-	            .layerCount = 1,
-	        },
-	};
-
-	vk::PipelineStageFlags sourceStage;
-	vk::PipelineStageFlags destinationStage;
-
-	if (oldLayout == vk::ImageLayout::eUndefined &&
-	    newLayout == vk::ImageLayout::eTransferDstOptimal) {
-		barrier.srcAccessMask = {};
-		barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-
-		sourceStage      = vk::PipelineStageFlagBits::eTopOfPipe;
-		destinationStage = vk::PipelineStageFlagBits::eTransfer;
-	} else if (oldLayout == vk::ImageLayout::eTransferDstOptimal &&
-	           newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
-		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-
-		sourceStage      = vk::PipelineStageFlagBits::eTransfer;
-		destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
-	} else {
-		throw std::invalid_argument("unsupported layout transition!");
-	}
-
-	commandBuffer.pipelineBarrier(
-	    sourceStage, destinationStage, {}, {}, nullptr, barrier);
 }
 
 }        // namespace mvr

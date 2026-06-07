@@ -12,6 +12,48 @@
 namespace mvr
 {
 
+namespace
+{
+void transitionImageLayout(const vk::raii::CommandBuffer &commandBuffer,
+                           vk::Image                      image,
+                           vk::ImageLayout                oldLayout,
+                           vk::ImageLayout                newLayout,
+                           vk::AccessFlags2               srcAccessMask,
+                           vk::AccessFlags2               dstAccessMask,
+                           vk::PipelineStageFlags2        srcStageMask,
+                           vk::PipelineStageFlags2        dstStageMask,
+                           vk::ImageAspectFlags           aspectFlags)
+{
+	vk::ImageMemoryBarrier2 barrier = {
+	    .srcStageMask        = srcStageMask,
+	    .srcAccessMask       = srcAccessMask,
+	    .dstStageMask        = dstStageMask,
+	    .dstAccessMask       = dstAccessMask,
+	    .oldLayout           = oldLayout,
+	    .newLayout           = newLayout,
+	    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+	    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+	    .image               = image,
+	    .subresourceRange =
+	        {
+	            .aspectMask     = aspectFlags,
+	            .baseMipLevel   = 0,
+	            .levelCount     = 1,
+	            .baseArrayLayer = 0,
+	            .layerCount     = 1,
+	        },
+	};
+
+	vk::DependencyInfo dependencyInfo = {
+	    .dependencyFlags         = {},
+	    .imageMemoryBarrierCount = 1,
+	    .pImageMemoryBarriers    = &barrier,
+	};
+
+	commandBuffer.pipelineBarrier2(dependencyInfo);
+}
+}        // namespace
+
 FirstApp::FirstApp()
 {
 	loadModel();
@@ -29,12 +71,53 @@ FirstApp::~FirstApp()
 
 void FirstApp::run()
 {
+	auto lastTime = std::chrono::high_resolution_clock::now();
+
 	while (!window.shouldClose()) {
 		glfwPollEvents();
+
+		auto  currentTime = std::chrono::high_resolution_clock::now();
+		float deltaTime =
+		    std::chrono::duration<float, std::chrono::seconds::period>(
+		        currentTime - lastTime)
+		        .count();
+		lastTime = currentTime;
+
+		input.update();
+		processInput(deltaTime);
+
 		drawFrame();
 	}
 
 	device.device().waitIdle();
+}
+
+void FirstApp::processInput(float deltaTime)
+{
+	if (input.isKeyPressed(GLFW_KEY_ESCAPE)) {
+		window.setShouldClose(true);
+	}
+
+	if (input.isKeyPressed(GLFW_KEY_W))
+		camera.processKeyboard(CameraMovement::Forward, deltaTime);
+	if (input.isKeyPressed(GLFW_KEY_S))
+		camera.processKeyboard(CameraMovement::Backward, deltaTime);
+	if (input.isKeyPressed(GLFW_KEY_A))
+		camera.processKeyboard(CameraMovement::Left, deltaTime);
+	if (input.isKeyPressed(GLFW_KEY_D))
+		camera.processKeyboard(CameraMovement::Right, deltaTime);
+
+	if (input.isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+		glm::vec2 delta = input.getMouseDelta();
+		// Screen y grows downward; negate so moving up looks up.
+		camera.processMouseMovement(delta.x, -delta.y);
+	}
+
+	if (input.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+		camera.processMouseScrollVertical(input.consumeScrollDelta());
+	} else {
+		camera.processMouseScrollZoom(input.consumeScrollDelta());
+	}
 }
 
 void FirstApp::loadModel()
@@ -175,8 +258,7 @@ void FirstApp::createPipelineLayout()
 void FirstApp::createPipeline()
 {
 	auto pipelineConfig = Pipeline::defaultPipelineConfigInfo(
-	    swapChain->getSwapChainSurfaceFormat(),
-	    swapChain->findDepthFormat());
+	    swapChain->getSwapChainSurfaceFormat(), swapChain->findDepthFormat());
 	pipelineConfig.pipelineLayout = *pipelineLayout;
 	pipeline = std::make_unique<Pipeline>(device,
 	                                      "shaders/simple_shader.vert.spv",
@@ -221,11 +303,11 @@ void FirstApp::updateUniformBuffer(uint32_t frameIndex)
 	ubo.model = glm::rotate(glm::mat4(1.0f),
 	                        time * glm::radians(90.0f),
 	                        glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view  = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
-	                        glm::vec3(0.0f, 0.0f, 0.0f),
-	                        glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj  = glm::perspective(
-	    glm::radians(45.0f), swapChain->extentAspectRatio(), 0.1f, 10.0f);
+	ubo.view  = camera.getViewMatrix();
+	ubo.proj  = glm::perspective(glm::radians(camera.getZoom()),
+	                             swapChain->extentAspectRatio(),
+	                             0.1f,
+	                             10.0f);
 	ubo.proj[1][1] *=
 	    -1;        // Invert Y coordinate for Vulkan's coordinate system
 
@@ -239,6 +321,7 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 
 	// Transition swapchain image to color attachment layout for rendering
 	transitionImageLayout(
+	    commandBuffer,
 	    swapChain->getImage(imageIndex),
 	    vk::ImageLayout::eUndefined,
 	    vk::ImageLayout::eColorAttachmentOptimal,
@@ -249,7 +332,8 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	    vk::ImageAspectFlagBits::eColor);
 
 	// Transition depth image to depth attachment layout for depth testing
-	transitionImageLayout(*swapChain->getDepthImage(),
+	transitionImageLayout(commandBuffer,
+	                      *swapChain->getDepthImage(),
 	                      vk::ImageLayout::eUndefined,
 	                      vk::ImageLayout::eDepthAttachmentOptimal,
 	                      vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
@@ -302,55 +386,17 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	commandBuffer.endRendering();
 
 	transitionImageLayout(
+	    commandBuffer,
 	    swapChain->getImage(imageIndex),
 	    vk::ImageLayout::eColorAttachmentOptimal,
 	    vk::ImageLayout::ePresentSrcKHR,
 	    vk::AccessFlagBits2::eColorAttachmentWrite,        // srcAccessMask
 	    vk::AccessFlagBits2::eNone,                        // dstAccessMask
 	    vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // srcStage
-	    vk::PipelineStageFlagBits2::eBottomOfPipe,                  // dstStage
-		vk::ImageAspectFlagBits::eColor
-	);
+	    vk::PipelineStageFlagBits2::eBottomOfPipe,                 // dstStage
+	    vk::ImageAspectFlagBits::eColor);
 
 	commandBuffer.end();
-}
-
-void FirstApp::transitionImageLayout(vk::Image               image,
-                                     vk::ImageLayout         oldLayout,
-                                     vk::ImageLayout         newLayout,
-                                     vk::AccessFlags2        srcAccessMask,
-                                     vk::AccessFlags2        dstAccessMask,
-                                     vk::PipelineStageFlags2 srcStageMask,
-                                     vk::PipelineStageFlags2 dstStageMask,
-                                     vk::ImageAspectFlags    asppectFlags)
-{
-	vk::ImageMemoryBarrier2 barrier = {
-	    .srcStageMask        = srcStageMask,
-	    .srcAccessMask       = srcAccessMask,
-	    .dstStageMask        = dstStageMask,
-	    .dstAccessMask       = dstAccessMask,
-	    .oldLayout           = oldLayout,
-	    .newLayout           = newLayout,
-	    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-	    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-	    .image               = image,
-	    .subresourceRange =
-	        {
-	            .aspectMask     = asppectFlags,
-	            .baseMipLevel   = 0,
-	            .levelCount     = 1,
-	            .baseArrayLayer = 0,
-	            .layerCount     = 1,
-	        },
-	};
-
-	vk::DependencyInfo dependencyInfo = {
-	    .dependencyFlags         = {},
-	    .imageMemoryBarrierCount = 1,
-	    .pImageMemoryBarriers    = &barrier,
-	};
-
-	commandBuffers[frameIndex].pipelineBarrier2(dependencyInfo);
 }
 
 void FirstApp::drawFrame()

@@ -1,9 +1,11 @@
 #pragma once
 
+#include "core/input_manager.h"
 #include "core/pipeline.h"
 #include "core/swap_chain.h"
 #include "core/vulkan_device.h"
 #include "core/window.h"
+#include "scene/camera.h"
 #include "scene/model.h"
 #include "scene/texture.h"
 #include "ubo.h"
@@ -33,11 +35,13 @@ class FirstApp
 	void run();
 
   private:
-	Window                        window{WIDTH, HEIGHT, "MyVulkanRenderer"};
-	VulkanDevice                  device{window};
-	std::unique_ptr<SwapChain>    swapChain;
-	vk::raii::DescriptorSetLayout descriptorSetLayout = nullptr;
-	vk::raii::DescriptorPool      descriptorPool      = nullptr;
+	Window       window{WIDTH, HEIGHT, "MyVulkanRenderer"};
+	VulkanDevice device{window};
+	InputManager input{window};
+	Camera camera{{2.0f, 2.0f, 2.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
+	std::unique_ptr<SwapChain>           swapChain;
+	vk::raii::DescriptorSetLayout        descriptorSetLayout = nullptr;
+	vk::raii::DescriptorPool             descriptorPool      = nullptr;
 	std::vector<vk::raii::DescriptorSet> descriptorSets;
 	vk::raii::PipelineLayout             pipelineLayout = nullptr;
 	std::unique_ptr<Pipeline>            pipeline;
@@ -45,6 +49,7 @@ class FirstApp
 	std::unique_ptr<Texture>             texture;
 	std::vector<vk::raii::CommandBuffer> commandBuffers;
 
+	void processInput(float deltaTime);
 	void loadModel();
 	void loadTexture();
 	void createDescriptorSetLayout();
@@ -57,16 +62,6 @@ class FirstApp
 	void updateUniformBuffer(uint32_t frameIndex);
 	void recordCommandBuffer(uint32_t imageIndex);
 	void drawFrame();
-
-	// Helper Methods
-	void transitionImageLayout(vk::Image         image,
-	                           vk::ImageLayout         oldLayout,
-	                           vk::ImageLayout         newLayout,
-	                           vk::AccessFlags2        srcAccessMask,
-	                           vk::AccessFlags2        dstAccessMask,
-	                           vk::PipelineStageFlags2 srcStageMask,
-	                           vk::PipelineStageFlags2 dstStageMask,
-	                           vk::ImageAspectFlags    aspectFlags);
 };
 
 }        // namespace mvr
