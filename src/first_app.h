@@ -59,16 +59,6 @@ class FirstApp
 	void updateUniformBuffer(uint32_t frameIndex);
 	void recordCommandBuffer(uint32_t imageIndex);
 	void drawFrame();
-
-	// Helper Methods
-	void transitionImageLayout(vk::Image               image,
-	                           vk::ImageLayout         oldLayout,
-	                           vk::ImageLayout         newLayout,
-	                           vk::AccessFlags2        srcAccessMask,
-	                           vk::AccessFlags2        dstAccessMask,
-	                           vk::PipelineStageFlags2 srcStageMask,
-	                           vk::PipelineStageFlags2 dstStageMask,
-	                           vk::ImageAspectFlags    aspectFlags);
 };
 
 }        // namespace mvr

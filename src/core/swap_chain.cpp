@@ -12,6 +12,70 @@
 namespace mvr
 {
 
+namespace
+{
+vk::SurfaceFormatKHR chooseSwapSurfaceFormat(
+    const std::vector<vk::SurfaceFormatKHR> &availableFormats)
+{
+	assert(!availableFormats.empty());
+	const auto formatIt =
+	    std::ranges::find_if(availableFormats, [](const auto &format) {
+		    return format.format == vk::Format::eB8G8R8A8Srgb &&
+		           format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
+	    });
+	return formatIt != availableFormats.end() ? *formatIt : availableFormats[0];
+}
+
+vk::PresentModeKHR chooseSwapPresentMode(
+    const std::vector<vk::PresentModeKHR> &availablePresentModes)
+{
+	assert(
+	    std::ranges::any_of(availablePresentModes, [](const auto &presentMode) {
+		    return presentMode == vk::PresentModeKHR::eFifo;
+	    }));
+
+	return std::ranges::any_of(availablePresentModes,
+	                           [](const auto &presentMode) {
+		                           return presentMode ==
+		                                  vk::PresentModeKHR::eMailbox;
+	                           }) ?
+	           vk::PresentModeKHR::eMailbox :
+	           vk::PresentModeKHR::eFifo;
+}
+
+vk::Extent2D chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities,
+                              vk::Extent2D                      windowExtent)
+{
+	if (capabilities.currentExtent.width !=
+	    std::numeric_limits<uint32_t>::max()) {
+		return capabilities.currentExtent;
+	}
+
+	int width  = windowExtent.width;
+	int height = windowExtent.height;
+
+	return {
+	    std::clamp<uint32_t>(width,
+	                         capabilities.minImageExtent.width,
+	                         capabilities.maxImageExtent.width),
+	    std::clamp<uint32_t>(height,
+	                         capabilities.minImageExtent.height,
+	                         capabilities.maxImageExtent.height),
+	};
+}
+
+uint32_t chooseSwapMinImageCount(const vk::SurfaceCapabilitiesKHR &capabilities)
+{
+	auto minImageCount = std::max(3u, capabilities.minImageCount);
+	if ((capabilities.maxImageCount > 0) &&
+	    (minImageCount > capabilities.maxImageCount)) {
+		return capabilities.maxImageCount;
+	}
+
+	return minImageCount;
+}
+}        // namespace
+
 // Constructor & Destructor
 
 SwapChain::SwapChain(VulkanDevice &device, vk::Extent2D windowExtent) :
@@ -88,7 +152,8 @@ void SwapChain::createSwapChain()
 	swapChainSurfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 	vk::PresentModeKHR presentMode =
 	    chooseSwapPresentMode(swapChainSupport.presentModes);
-	swapChainExtent = chooseSwapExtent(swapChainSupport.capabilities);
+	swapChainExtent =
+	    chooseSwapExtent(swapChainSupport.capabilities, windowExtent);
 	uint32_t imageCount =
 	    chooseSwapMinImageCount(swapChainSupport.capabilities);
 
@@ -169,70 +234,6 @@ void SwapChain::createSyncObjects()
 		    device.device(),
 		    vk::FenceCreateInfo{.flags = vk::FenceCreateFlagBits::eSignaled});
 	}
-}
-
-// Helper Methods
-
-vk::SurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(
-    std::vector<vk::SurfaceFormatKHR> const &availableFormats)
-{
-	assert(!availableFormats.empty());
-	const auto formatIt =
-	    std::ranges::find_if(availableFormats, [](const auto &format) {
-		    return format.format == vk::Format::eB8G8R8A8Srgb &&
-		           format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
-	    });
-	return formatIt != availableFormats.end() ? *formatIt : availableFormats[0];
-}
-
-vk::PresentModeKHR SwapChain::chooseSwapPresentMode(
-    const std::vector<vk::PresentModeKHR> &availablePresentModes)
-{
-	assert(
-	    std::ranges::any_of(availablePresentModes, [](const auto &presentMode) {
-		    return presentMode == vk::PresentModeKHR::eFifo;
-	    }));
-
-	return std::ranges::any_of(availablePresentModes,
-	                           [](const auto &presentMode) {
-		                           return presentMode ==
-		                                  vk::PresentModeKHR::eMailbox;
-	                           }) ?
-	           vk::PresentModeKHR::eMailbox :
-	           vk::PresentModeKHR::eFifo;
-}
-
-vk::Extent2D
-    SwapChain::chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities)
-{
-	if (capabilities.currentExtent.width !=
-	    std::numeric_limits<uint32_t>::max()) {
-		return capabilities.currentExtent;
-	}
-
-	int width  = windowExtent.width;
-	int height = windowExtent.height;
-
-	return {
-	    std::clamp<uint32_t>(width,
-	                         capabilities.minImageExtent.width,
-	                         capabilities.maxImageExtent.width),
-	    std::clamp<uint32_t>(height,
-	                         capabilities.minImageExtent.height,
-	                         capabilities.maxImageExtent.height),
-	};
-}
-
-uint32_t SwapChain::chooseSwapMinImageCount(
-    const vk::SurfaceCapabilitiesKHR &capabilities)
-{
-	auto minImageCount = std::max(3u, capabilities.minImageCount);
-	if ((capabilities.maxImageCount > 0) &&
-	    (minImageCount > capabilities.maxImageCount)) {
-		return capabilities.maxImageCount;
-	}
-
-	return minImageCount;
 }
 
 }        // namespace mvr

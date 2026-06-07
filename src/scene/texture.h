@@ -28,11 +28,6 @@ class Texture
 	void createTextureImage(const std::string &filePath);
 	void createTextureImageView();
 	void createTextureSampler();
-
-	void transitionImageLayout(vk::raii::CommandBuffer &commandBuffer,
-	                           const vk::raii::Image   &image,
-	                           vk::ImageLayout          oldLayout,
-	                           vk::ImageLayout          newLayout);
 };
 
 }        // namespace mvr

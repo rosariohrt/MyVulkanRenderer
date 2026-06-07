@@ -12,6 +12,48 @@
 namespace mvr
 {
 
+namespace
+{
+void transitionImageLayout(const vk::raii::CommandBuffer &commandBuffer,
+                           vk::Image                      image,
+                           vk::ImageLayout                oldLayout,
+                           vk::ImageLayout                newLayout,
+                           vk::AccessFlags2               srcAccessMask,
+                           vk::AccessFlags2               dstAccessMask,
+                           vk::PipelineStageFlags2        srcStageMask,
+                           vk::PipelineStageFlags2        dstStageMask,
+                           vk::ImageAspectFlags           aspectFlags)
+{
+	vk::ImageMemoryBarrier2 barrier = {
+	    .srcStageMask        = srcStageMask,
+	    .srcAccessMask       = srcAccessMask,
+	    .dstStageMask        = dstStageMask,
+	    .dstAccessMask       = dstAccessMask,
+	    .oldLayout           = oldLayout,
+	    .newLayout           = newLayout,
+	    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+	    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+	    .image               = image,
+	    .subresourceRange =
+	        {
+	            .aspectMask     = aspectFlags,
+	            .baseMipLevel   = 0,
+	            .levelCount     = 1,
+	            .baseArrayLayer = 0,
+	            .layerCount     = 1,
+	        },
+	};
+
+	vk::DependencyInfo dependencyInfo = {
+	    .dependencyFlags         = {},
+	    .imageMemoryBarrierCount = 1,
+	    .pImageMemoryBarriers    = &barrier,
+	};
+
+	commandBuffer.pipelineBarrier2(dependencyInfo);
+}
+}        // namespace
+
 FirstApp::FirstApp()
 {
 	loadModel();
@@ -175,8 +217,7 @@ void FirstApp::createPipelineLayout()
 void FirstApp::createPipeline()
 {
 	auto pipelineConfig = Pipeline::defaultPipelineConfigInfo(
-	    swapChain->getSwapChainSurfaceFormat(),
-	    swapChain->findDepthFormat());
+	    swapChain->getSwapChainSurfaceFormat(), swapChain->findDepthFormat());
 	pipelineConfig.pipelineLayout = *pipelineLayout;
 	pipeline = std::make_unique<Pipeline>(device,
 	                                      "shaders/simple_shader.vert.spv",
@@ -239,6 +280,7 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 
 	// Transition swapchain image to color attachment layout for rendering
 	transitionImageLayout(
+	    commandBuffer,
 	    swapChain->getImage(imageIndex),
 	    vk::ImageLayout::eUndefined,
 	    vk::ImageLayout::eColorAttachmentOptimal,
@@ -249,7 +291,8 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	    vk::ImageAspectFlagBits::eColor);
 
 	// Transition depth image to depth attachment layout for depth testing
-	transitionImageLayout(*swapChain->getDepthImage(),
+	transitionImageLayout(commandBuffer,
+	                      *swapChain->getDepthImage(),
 	                      vk::ImageLayout::eUndefined,
 	                      vk::ImageLayout::eDepthAttachmentOptimal,
 	                      vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
@@ -302,55 +345,17 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	commandBuffer.endRendering();
 
 	transitionImageLayout(
+	    commandBuffer,
 	    swapChain->getImage(imageIndex),
 	    vk::ImageLayout::eColorAttachmentOptimal,
 	    vk::ImageLayout::ePresentSrcKHR,
 	    vk::AccessFlagBits2::eColorAttachmentWrite,        // srcAccessMask
 	    vk::AccessFlagBits2::eNone,                        // dstAccessMask
 	    vk::PipelineStageFlagBits2::eColorAttachmentOutput,        // srcStage
-	    vk::PipelineStageFlagBits2::eBottomOfPipe,                  // dstStage
-		vk::ImageAspectFlagBits::eColor
-	);
+	    vk::PipelineStageFlagBits2::eBottomOfPipe,                 // dstStage
+	    vk::ImageAspectFlagBits::eColor);
 
 	commandBuffer.end();
-}
-
-void FirstApp::transitionImageLayout(vk::Image               image,
-                                     vk::ImageLayout         oldLayout,
-                                     vk::ImageLayout         newLayout,
-                                     vk::AccessFlags2        srcAccessMask,
-                                     vk::AccessFlags2        dstAccessMask,
-                                     vk::PipelineStageFlags2 srcStageMask,
-                                     vk::PipelineStageFlags2 dstStageMask,
-                                     vk::ImageAspectFlags    asppectFlags)
-{
-	vk::ImageMemoryBarrier2 barrier = {
-	    .srcStageMask        = srcStageMask,
-	    .srcAccessMask       = srcAccessMask,
-	    .dstStageMask        = dstStageMask,
-	    .dstAccessMask       = dstAccessMask,
-	    .oldLayout           = oldLayout,
-	    .newLayout           = newLayout,
-	    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-	    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-	    .image               = image,
-	    .subresourceRange =
-	        {
-	            .aspectMask     = asppectFlags,
-	            .baseMipLevel   = 0,
-	            .levelCount     = 1,
-	            .baseArrayLayer = 0,
-	            .layerCount     = 1,
-	        },
-	};
-
-	vk::DependencyInfo dependencyInfo = {
-	    .dependencyFlags         = {},
-	    .imageMemoryBarrierCount = 1,
-	    .pImageMemoryBarriers    = &barrier,
-	};
-
-	commandBuffers[frameIndex].pipelineBarrier2(dependencyInfo);
 }
 
 void FirstApp::drawFrame()

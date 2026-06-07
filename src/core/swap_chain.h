@@ -105,16 +105,6 @@ class SwapChain
 	void createImageViews();
 	void createDepthResources();
 	void createSyncObjects();
-
-	// Helper Methods
-	vk::SurfaceFormatKHR chooseSwapSurfaceFormat(
-	    const std::vector<vk::SurfaceFormatKHR> &availableFormats);
-	vk::PresentModeKHR chooseSwapPresentMode(
-	    const std::vector<vk::PresentModeKHR> &availablePresentModes);
-	vk::Extent2D
-	    chooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
-	uint32_t
-	    chooseSwapMinImageCount(const vk::SurfaceCapabilitiesKHR &capabilities);
 };
 
 }        // namespace mvr
