@@ -42,58 +42,39 @@ Goal: switch between rasterization and ray tracing at runtime.
 
 ## How to Run
 
-Dependency-install scripts live in `scripts/`. They install the build tools,
-GLFW, and GLM, then print instructions for installing the **Vulkan SDK**
+
+
+`scripts/` constains dependency-install scripts.\
+They install depedencies and print instructions for installing the **Vulkan SDK**
 (which must be downloaded manually from <https://vulkan.lunarg.com/>).
 
-### Linux
+### Linux and macOS
 
 ```sh
-./scripts/install_dependencies_linux.sh   # apt / dnf / pacman auto-detected
+./scripts/install_dependencies_linux.sh        # Make sure to install Vulkan SDK manually
 mkdir build && cd build
-cmake ..
-make
-./MyVulkanRenderer
-```
-
-### macOS
-
-```sh
-./scripts/install_dependencies_macos.sh   # requires Homebrew
-mkdir build && cd build
-cmake ..
-make
+cmake .. && make
 ./MyVulkanRenderer
 ```
 
 ### Windows (Visual Studio — recommended)
 
-Visual Studio 2022/2026 (with the "Desktop development with C++" workload, which
-includes CMake) opens the project directly:
+Prerequisites: install the [vcpkg](https://github.com/microsoft/vcpkg) first.
 
-1. Install the [Vulkan SDK](https://vulkan.lunarg.com/) and
-   [vcpkg](https://github.com/microsoft/vcpkg), then make vcpkg's packages
-   visible to Visual Studio:
+1. Install dependencies from the repository root:
 
-   ```powershell
-   .\scripts\install_dependencies_windows.bat   # installs glfw3, glm via vcpkg
-   vcpkg integrate install                       # let VS auto-discover them
-   ```
+```powershell
+.\scripts\install_dependencies_windows.bat     # Make sure to install Vulkan SDK manually
+vcpkg integrate install                        # let VS auto-discover them
+```
 
-2. In Visual Studio: **File → Open → Folder…** and select the repository root.
+2. Open the repository root in Visual Studio 2022/2026 (File → Open → Folder).
    VS detects `CMakeLists.txt` and configures automatically.
-3. Pick `MyVulkanRenderer.exe` as the startup item and press **F5** (or Ctrl+F5).
+3. Pick `MyVulkanRenderer.exe` as the startup item and press F5 (or Ctrl+F5).
 
 ### Windows (command line)
 
-```powershell
-.\scripts\install_dependencies_windows.bat
-# Point the toolchain at the vcpkg the script installed into
-# (the vcpkg on your PATH, e.g. C:\vcpkg)
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="C:\vcpkg\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows
-cmake --build build --config Debug
-.\build\Debug\MyVulkanRenderer.exe
-```
+WIP — to be added.
 
 
 ## Credit
