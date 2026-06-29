@@ -9,6 +9,7 @@ A small real-time renderer built with **Vulkan** and **GLFW**.
 - Dynamic rendering
 - Manual GPU memory management (no VMA)
 - Camera controls (WASD + mouse)
+- Directional light
 
 ## Future Work
 
