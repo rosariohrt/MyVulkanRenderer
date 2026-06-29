@@ -5,8 +5,11 @@
 namespace mvr
 {
 
-struct UniformBufferObject {
+struct PushConstantObject {
 	glm::mat4 model;
+};
+
+struct UniformBufferObject {
 	glm::mat4 view;
 	glm::mat4 proj;
 };

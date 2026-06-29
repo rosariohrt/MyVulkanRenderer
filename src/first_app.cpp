@@ -1,5 +1,6 @@
 #include "first_app.h"
 #include "constants.h"
+#include "ubo.h"
 
 // std
 #include <array>
@@ -271,10 +272,17 @@ void FirstApp::createDescriptorSets()
 
 void FirstApp::createPipelineLayout()
 {
+	vk::PushConstantRange pushConstantRange = {
+	    .stageFlags = vk::ShaderStageFlagBits::eVertex,
+	    .offset     = 0,
+	    .size       = sizeof(PushConstantObject),
+	};
+
 	vk::PipelineLayoutCreateInfo pipelineLayoutInfo = {
 	    .setLayoutCount         = 1,
 	    .pSetLayouts            = &*descriptorSetLayout,
-	    .pushConstantRangeCount = 0,
+	    .pushConstantRangeCount = 1,
+	    .pPushConstantRanges    = &pushConstantRange,
 	};
 
 	pipelineLayout =
@@ -319,23 +327,14 @@ void FirstApp::recreateSwapChain()
 
 void FirstApp::updateUniformBuffer(uint32_t frameIndex)
 {
-	static auto startTime   = std::chrono::high_resolution_clock::now();
-	auto        currentTime = std::chrono::high_resolution_clock::now();
-	float time = std::chrono::duration<float, std::chrono::seconds::period>(
-	                 currentTime - startTime)
-	                 .count();
-
 	UniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f),
-	                        time * glm::radians(90.0f),
-	                        glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view  = camera.getViewMatrix();
-	ubo.proj  = glm::perspective(glm::radians(camera.getZoom()),
-	                             swapChain->extentAspectRatio(),
-	                             0.1f,
-	                             10.0f);
-	ubo.proj[1][1] *=
-	    -1;        // Invert Y coordinate for Vulkan's coordinate system
+	ubo.view = camera.getViewMatrix();
+	ubo.proj = glm::perspective(glm::radians(camera.getZoom()),
+	                            swapChain->extentAspectRatio(),
+	                            0.1f,
+	                            10.0f);
+	// Invert Y coordinate for Vulkan's coordinate system
+	ubo.proj[1][1] *= -1;
 
 	memcpy(model->getUniformBuffersMapped(frameIndex), &ubo, sizeof(ubo));
 }
@@ -408,6 +407,22 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	                                 0,
 	                                 *descriptorSets[frameIndex],
 	                                 nullptr);
+
+	// time
+	static auto startTime   = std::chrono::high_resolution_clock::now();
+	auto        currentTime = std::chrono::high_resolution_clock::now();
+	float time = std::chrono::duration<float, std::chrono::seconds::period>(
+	                 currentTime - startTime)
+	                 .count();
+
+	// push constants for model transformation
+	PushConstantObject push{};
+	push.model = glm::rotate(glm::mat4(1.0f),
+	                         time * glm::radians(90.0f),
+	                         glm::vec3(0.0f, 0.0f, 1.0f));
+	commandBuffer.pushConstants<PushConstantObject>(
+	    *pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, push);
+
 	model->draw(commandBuffer);
 	commandBuffer.endRendering();
 
