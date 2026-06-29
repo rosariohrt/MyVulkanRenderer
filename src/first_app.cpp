@@ -192,7 +192,8 @@ void FirstApp::createDescriptorSetLayout()
 	        .binding         = 0,
 	        .descriptorType  = vk::DescriptorType::eUniformBuffer,
 	        .descriptorCount = 1,
-	        .stageFlags      = vk::ShaderStageFlagBits::eVertex,
+	        .stageFlags      = vk::ShaderStageFlagBits::eVertex |
+	                           vk::ShaderStageFlagBits::eFragment,
 	    },
 	    {
 	        .binding         = 1,
@@ -328,13 +329,19 @@ void FirstApp::recreateSwapChain()
 void FirstApp::updateUniformBuffer(uint32_t frameIndex)
 {
 	UniformBufferObject ubo{};
-	ubo.view = camera.getViewMatrix();
-	ubo.proj = glm::perspective(glm::radians(camera.getZoom()),
-	                            swapChain->extentAspectRatio(),
-	                            0.1f,
-	                            10.0f);
+	ubo.view    = camera.getViewMatrix();
+	ubo.proj    = glm::perspective(glm::radians(camera.getZoom()),
+	                               swapChain->extentAspectRatio(),
+	                               0.1f,
+	                               10.0f);
 	// Invert Y coordinate for Vulkan's coordinate system
 	ubo.proj[1][1] *= -1;
+	ubo.viewPos = glm::vec4(camera.getPosition(), 1.0f);
+
+	ubo.light.direction = glm::vec4(1.0f, 0.3f, -1.0f, 0.0f);
+	ubo.light.ambient   = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+	ubo.light.diffuse   = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+	ubo.light.specular  = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	memcpy(model->getUniformBuffersMapped(frameIndex), &ubo, sizeof(ubo));
 }
