@@ -8,8 +8,6 @@
 #include "scene/camera.h"
 #include "scene/model.h"
 #include "scene/texture.h"
-#include "ubo.h"
-
 // std
 #include <chrono>
 #include <cstdint>
