@@ -3,6 +3,8 @@
 A small real-time renderer built with **Vulkan** and **GLFW**.
 > This project is a work in progress - see the other branches for the latest code.
 
+![Demo](https://github.com/user-attachments/assets/0f145d7e-5b15-4a66-a763-05afca1d2f0f)
+
 ## Features
 
 - RAII-based resource management (Vulkan-Hpp `vk::raii`)
