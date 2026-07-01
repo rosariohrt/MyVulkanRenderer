@@ -184,10 +184,10 @@ std::pair<vk::raii::Image, vk::raii::DeviceMemory>
 
 	vk::MemoryRequirements memRequirements = image.getMemoryRequirements();
 	vk::MemoryAllocateInfo allocInfo       = {
-	    .allocationSize = memRequirements.size,
-	    .memoryTypeIndex =
-	        findMemoryType(memRequirements.memoryTypeBits, properties),
-	};
+	          .allocationSize = memRequirements.size,
+	          .memoryTypeIndex =
+            findMemoryType(memRequirements.memoryTypeBits, properties),
+    };
 
 	vk::raii::DeviceMemory imageMemory =
 	    vk::raii::DeviceMemory(device_, allocInfo);
@@ -313,8 +313,8 @@ void VulkanDevice::createLogicalDevice()
 	// Create queue create infos for each unique queue family
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t>                     uniqueQueueFamilies = {
-	    queueFamilyIndices.graphicsFamily.value(),
-	    queueFamilyIndices.presentFamily.value()};
+        queueFamilyIndices.graphicsFamily.value(),
+        queueFamilyIndices.presentFamily.value()};
 
 	float queuePriority = 1.0f;
 	for (uint32_t queueFamily : uniqueQueueFamilies) {

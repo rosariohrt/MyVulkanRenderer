@@ -188,24 +188,24 @@ void FirstApp::loadTexture()
 void FirstApp::createDescriptorSetLayout()
 {
 	std::array<vk::DescriptorSetLayoutBinding, 2> bindings   = {{
-	    {
-	        .binding         = 0,
-	        .descriptorType  = vk::DescriptorType::eUniformBuffer,
-	        .descriptorCount = 1,
-	        .stageFlags      = vk::ShaderStageFlagBits::eVertex |
-	                           vk::ShaderStageFlagBits::eFragment,
-	    },
-	    {
-	        .binding         = 1,
-	        .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
-	        .descriptorCount = 1,
-	        .stageFlags      = vk::ShaderStageFlagBits::eFragment,
-	    },
-	}};
+        {
+	          .binding         = 0,
+	          .descriptorType  = vk::DescriptorType::eUniformBuffer,
+	          .descriptorCount = 1,
+	          .stageFlags      = vk::ShaderStageFlagBits::eVertex |
+                          vk::ShaderStageFlagBits::eFragment,
+        },
+        {
+	          .binding         = 1,
+	          .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+	          .descriptorCount = 1,
+	          .stageFlags      = vk::ShaderStageFlagBits::eFragment,
+        },
+    }};
 	vk::DescriptorSetLayoutCreateInfo             layoutInfo = {
-	    .bindingCount = static_cast<uint32_t>(bindings.size()),
-	    .pBindings    = bindings.data(),
-	};
+	                .bindingCount = static_cast<uint32_t>(bindings.size()),
+	                .pBindings    = bindings.data(),
+    };
 
 	descriptorSetLayout =
 	    vk::raii::DescriptorSetLayout(device.device(), layoutInfo);
@@ -295,10 +295,10 @@ void FirstApp::createPipeline()
 	auto pipelineConfig = Pipeline::defaultPipelineConfigInfo(
 	    swapChain->getSwapChainSurfaceFormat(), swapChain->findDepthFormat());
 	pipelineConfig.pipelineLayout = *pipelineLayout;
-	pipeline = std::make_unique<Pipeline>(device,
-	                                      "shaders/simple_shader.vert.spv",
-	                                      "shaders/simple_shader.frag.spv",
-	                                      pipelineConfig);
+	pipeline                      = std::make_unique<Pipeline>(device,
+                                          "shaders/simple_shader.vert.spv",
+                                          "shaders/simple_shader.frag.spv",
+                                          pipelineConfig);
 }
 
 void FirstApp::createCommandBuffers()
