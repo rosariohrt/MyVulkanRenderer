@@ -79,6 +79,16 @@ vcpkg integrate install                        # let VS auto-discover them
 
 WIP — to be added.
 
+> ### Code Formatting (optional)
+>
+> Uses **clang-format v18**. To enable automatic formatting on commit:
+>
+> ```sh
+> pip install pre-commit
+> pre-commit install
+> ```
+>
+> For editor integration, use clang-format v18 ([LLVM 18](https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8) on Windows, `brew install llvm@18` on macOS, `apt install clang-format-18` on Linux).
 
 ## Credit
 
