@@ -329,11 +329,11 @@ void FirstApp::recreateSwapChain()
 void FirstApp::updateUniformBuffer(uint32_t frameIndex)
 {
 	UniformBufferObject ubo{};
-	ubo.view    = camera.getViewMatrix();
-	ubo.proj    = glm::perspective(glm::radians(camera.getZoom()),
-	                               swapChain->extentAspectRatio(),
-	                               0.1f,
-	                               10.0f);
+	ubo.view = camera.getViewMatrix();
+	ubo.proj = glm::perspective(glm::radians(camera.getZoom()),
+	                            swapChain->extentAspectRatio(),
+	                            0.1f,
+	                            10.0f);
 	// Invert Y coordinate for Vulkan's coordinate system
 	ubo.proj[1][1] *= -1;
 	ubo.viewPos = glm::vec4(camera.getPosition(), 1.0f);
