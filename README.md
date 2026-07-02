@@ -3,7 +3,7 @@
 A small real-time renderer built with **Vulkan** and **GLFW**.
 > This project is a work in progress - see the other branches for the latest code.
 
-![Demo](https://github.com/user-attachments/assets/0f145d7e-5b15-4a66-a763-05afca1d2f0f)
+![Demo](https://github.com/user-attachments/assets/85e23880-4d75-4c28-a3ae-0621c3660411)
 
 ## Features
 
@@ -11,13 +11,13 @@ A small real-time renderer built with **Vulkan** and **GLFW**.
 - Dynamic rendering
 - Manual GPU memory management (no VMA)
 - Camera controls (WASD + mouse)
+- glTF Model loading
 - Directional light
 
 ## Future Work
 
 Goal: switch between rasterization and ray tracing at runtime.
 
-- Model loading (glTF)
 - GUI (Dear ImGui)
 - VMA for memory management
 - Ray tracing
