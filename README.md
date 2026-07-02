@@ -55,6 +55,9 @@ They install depedencies and print instructions for installing the **Vulkan SDK*
 
 ```sh
 ./scripts/install_dependencies_linux.sh        # Make sure to install Vulkan SDK manually
+# or
+./scripts/install_dependencies_macos.sh
+
 mkdir build && cd build
 cmake .. && make
 ./MyVulkanRenderer
@@ -96,4 +99,6 @@ WIP — to be added.
 - [littleVulkanEngine](https://github.com/blurrypiano/littleVulkanEngine)
 - [Vulkan Specification](https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html)
 - [Learn OpenGL](https://learnopengl.com/)
+- [glm](https://github.com/g-truc/glm)
 - [stb](https://github.com/nothings/stb)
+- [tinygltf](https://github.com/syoyo/tinygltf)
