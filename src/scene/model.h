@@ -90,6 +90,9 @@ class Model
 	std::vector<vk::raii::DeviceMemory> uniformBuffersMemory;
 	std::vector<void *>                 uniformBuffersMapped;
 
+	void loadGltfModel(std::vector<Vertex>   &vertices,
+	                   std::vector<uint32_t> &indices,
+	                   const std::string     &path);
 	void createVertexBuffer(const std::vector<Vertex> &vertices);
 	void createIndexBuffer(const std::vector<uint16_t> &indices);
 	void createUniformBuffers();

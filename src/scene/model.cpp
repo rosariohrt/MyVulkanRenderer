@@ -4,6 +4,12 @@
 // std
 #include <cassert>
 #include <cstring>
+#include <iostream>
+
+// libs
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <tiny_gltf.h>
 
 namespace mvr
 {
@@ -16,6 +22,146 @@ Model::Model(VulkanDevice                &device,
 	createVertexBuffer(vertices);
 	createIndexBuffer(indices);
 	createUniformBuffers();
+}
+
+void Model::loadGltfModel(std::vector<Vertex>   &vertices,
+                          std::vector<uint32_t> &indices,
+                          const std::string     &path)
+{
+	tinygltf::Model    model;
+	tinygltf::TinyGLTF loader;
+	std::string        err, warn;
+
+	bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, path);
+
+	if (!warn.empty()) {
+		std::cout << "glTF warning: " << warn << std::endl;
+	}
+	if (!err.empty()) {
+		std::cout << "glTF error: " << err << std::endl;
+	}
+	if (!ret) {
+		throw std::runtime_error("Failed to load glTF model: " + path);
+	}
+
+	// Process all meshes in the model
+	for (const auto &mesh : model.meshes) {
+		for (const auto &primitive : mesh.primitives) {
+			// Get indices
+			const tinygltf::Accessor &indexAccessor =
+			    model.accessors[primitive.indices];
+			const tinygltf::BufferView &indexBufferView =
+			    model.bufferViews[indexAccessor.bufferView];
+			const tinygltf::Buffer &indexBuffer =
+			    model.buffers[indexBufferView.buffer];
+
+			// Get vertex positions
+			const tinygltf::Accessor &posAccessor =
+			    model.accessors[primitive.attributes.at("POSITION")];
+			const tinygltf::BufferView &posBufferView =
+			    model.bufferViews[posAccessor.bufferView];
+			const tinygltf::Buffer &posBuffer =
+			    model.buffers[posBufferView.buffer];
+
+			// Get normals
+			bool hasNormals = primitive.attributes.find("NORMAL") !=
+			                  primitive.attributes.end();
+			const tinygltf::Accessor   *normAccessor   = nullptr;
+			const tinygltf::BufferView *normBufferView = nullptr;
+			const tinygltf::Buffer     *normBuffer     = nullptr;
+
+			if (hasNormals) {
+				normAccessor =
+				    &model.accessors[primitive.attributes.at("NORMAL")];
+				normBufferView = &model.bufferViews[normAccessor->bufferView];
+				normBuffer     = &model.buffers[normBufferView->buffer];
+			}
+
+			// Get texture coordinates
+			bool hasTexCoords = primitive.attributes.find("TEXCOORD_0") !=
+			                    primitive.attributes.end();
+			const tinygltf::Accessor   *texCoordAccessor   = nullptr;
+			const tinygltf::BufferView *texCoordBufferView = nullptr;
+			const tinygltf::Buffer     *texCoordBuffer     = nullptr;
+
+			if (hasTexCoords) {
+				texCoordAccessor =
+				    &model.accessors[primitive.attributes.at("TEXCOORD_0")];
+				texCoordBufferView =
+				    &model.bufferViews[texCoordAccessor->bufferView];
+				texCoordBuffer = &model.buffers[texCoordBufferView->buffer];
+			}
+
+			// Track vertex offset for index remapping
+			uint32_t baseVertex = static_cast<uint32_t>(vertices.size());
+
+			// process all vertices
+			for (size_t i = 0; i < posAccessor.count; ++i) {
+				Vertex vertex{};
+
+				const float *pos = reinterpret_cast<const float *>(
+				    &posBuffer
+				         .data[posBufferView.byteOffset +
+				               posAccessor.byteOffset + i * 3 * sizeof(float)]);
+				// This scene uses a Z-up world (see Camera's default worldUp),
+				// while glTF assets are Y-up. Negate Y to align model-space
+				// "up" with the scene's up axis.
+				vertex.pos = glm::vec3{pos[0], -pos[2], pos[1]};
+
+				if (hasNormals) {
+					const float *normal = reinterpret_cast<const float *>(
+					    &normBuffer->data[normBufferView->byteOffset +
+					                      normAccessor->byteOffset +
+					                      i * 3 * sizeof(float)]);
+					vertex.normal = glm::vec3{normal[0], -normal[2], normal[1]};
+				}
+
+				if (hasTexCoords) {
+					const float *texCoord = reinterpret_cast<const float *>(
+					    &texCoordBuffer->data[texCoordBufferView->byteOffset +
+					                          texCoordAccessor->byteOffset +
+					                          i * 2 * sizeof(float)]);
+					vertex.texCoord = glm::vec2{texCoord[0], texCoord[1]};
+				}
+
+				vertices.push_back(vertex);
+			}
+
+			const unsigned char *indexData =
+			    &indexBuffer.data[indexBufferView.byteOffset +
+			                      indexAccessor.byteOffset];
+			size_t indexCount = indexAccessor.count;
+
+			indices.reserve(indices.size() + indexCount);
+
+			// process all indices
+			for (size_t i = 0; i < indexCount; ++i) {
+				uint32_t index = 0;
+
+				switch (indexAccessor.componentType) {
+					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+						index = static_cast<uint32_t>(
+						    *reinterpret_cast<const uint8_t *>(
+						        indexData + i * sizeof(uint8_t)));
+						break;
+					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+						index = static_cast<uint32_t>(
+						    *reinterpret_cast<const uint16_t *>(
+						        indexData + i * sizeof(uint16_t)));
+						break;
+					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+						index = *reinterpret_cast<const uint32_t *>(
+						    indexData + i * sizeof(uint32_t));
+						break;
+					default:
+						throw std::runtime_error(
+						    "Unsupported index component type in glTF model");
+				}
+
+				indices.push_back(baseVertex + index);
+			}
+		}
+	}
 }
 
 void Model::bind(vk::CommandBuffer commandBuffer)
