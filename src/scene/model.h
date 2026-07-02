@@ -1,6 +1,5 @@
 #pragma once
 
-#include "constants.h"
 #include "core/vulkan_device.h"
 
 // libs
@@ -57,9 +56,7 @@ class Model
 		}
 	};
 
-	Model(VulkanDevice                &device,
-	      const std::vector<Vertex>   &vertices,
-	      const std::vector<uint16_t> &indices);
+	Model(VulkanDevice &device, const std::string &path);
 	Model(const Model &)            = delete;
 	Model &operator=(const Model &) = delete;
 
@@ -94,7 +91,7 @@ class Model
 	                   std::vector<uint32_t> &indices,
 	                   const std::string     &path);
 	void createVertexBuffer(const std::vector<Vertex> &vertices);
-	void createIndexBuffer(const std::vector<uint16_t> &indices);
+	void createIndexBuffer(const std::vector<uint32_t> &indices);
 	void createUniformBuffers();
 };
 

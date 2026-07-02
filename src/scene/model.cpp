@@ -1,4 +1,5 @@
 #include "scene/model.h"
+#include "constants.h"
 #include "ubo.h"
 
 // std
@@ -14,11 +15,12 @@
 namespace mvr
 {
 
-Model::Model(VulkanDevice                &device,
-             const std::vector<Vertex>   &vertices,
-             const std::vector<uint16_t> &indices) :
-    device{device}
+Model::Model(VulkanDevice &device, const std::string &path) : device{device}
 {
+	std::vector<Model::Vertex> vertices;
+	std::vector<uint32_t>      indices;
+	loadGltfModel(vertices, indices, path);
+
 	createVertexBuffer(vertices);
 	createIndexBuffer(indices);
 	createUniformBuffers();
@@ -167,7 +169,7 @@ void Model::loadGltfModel(std::vector<Vertex>   &vertices,
 void Model::bind(vk::CommandBuffer commandBuffer)
 {
 	commandBuffer.bindVertexBuffers(0, *vertexBuffer, {0});
-	commandBuffer.bindIndexBuffer(*indexBuffer, 0, vk::IndexType::eUint16);
+	commandBuffer.bindIndexBuffer(*indexBuffer, 0, vk::IndexType::eUint32);
 }
 
 void Model::draw(vk::CommandBuffer commandBuffer)
@@ -209,7 +211,7 @@ void Model::createVertexBuffer(const std::vector<Vertex> &vertices)
 	device.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 }
 
-void Model::createIndexBuffer(const std::vector<uint16_t> &indices)
+void Model::createIndexBuffer(const std::vector<uint32_t> &indices)
 {
 	indexCount                = static_cast<uint32_t>(indices.size());
 	vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();

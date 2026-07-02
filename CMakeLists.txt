@@ -79,11 +79,11 @@ endif ()
 add_custom_target(Shaders DEPENDS ${SPV_OUTPUTS})
 add_dependencies(${PROJECT_NAME} Shaders)
 
-# --- Textures ---
-add_custom_target(Textures
+# --- Assets ---
+add_custom_target(Assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/textures
-        ${CMAKE_BINARY_DIR}/textures
-    COMMENT "Copying textures"
+        ${CMAKE_SOURCE_DIR}/assets
+        ${CMAKE_BINARY_DIR}/assets
+    COMMENT "Copying assets"
 )
-add_dependencies(${PROJECT_NAME} Textures)
+add_dependencies(${PROJECT_NAME} Assets)

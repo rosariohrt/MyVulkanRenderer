@@ -11,6 +11,9 @@
 // libs
 #include <glm/gtc/matrix_transform.hpp>
 
+const std::string MODEL_PATH   = "assets/DamagedHelmet/DamagedHelmet.gltf";
+const std::string TEXTURE_PATH = "assets/DamagedHelmet/Default_albedo.jpg";
+
 namespace mvr
 {
 
@@ -124,65 +127,12 @@ void FirstApp::processInput(float deltaTime)
 
 void FirstApp::loadModel()
 {
-	// All faces wound CCW in right-handed space (cross of first triangle ==
-	// outward normal) so vk::FrontFace::eCounterClockwise + back-face culling
-	// shows every face.
-	// clang-format off
-	const std::vector<Model::Vertex> vertices{
-	    // front face (+Z)
-	    {{-0.5f, -0.5f,  0.5f}, { 0.0f,  0.0f,  1.0f}, {0.0f, 0.0f}},
-	    {{ 0.5f, -0.5f,  0.5f}, { 0.0f,  0.0f,  1.0f}, {1.0f, 0.0f}},
-	    {{ 0.5f,  0.5f,  0.5f}, { 0.0f,  0.0f,  1.0f}, {1.0f, 1.0f}},
-	    {{-0.5f, -0.5f,  0.5f}, { 0.0f,  0.0f,  1.0f}, {0.0f, 0.0f}},
-	    {{ 0.5f,  0.5f,  0.5f}, { 0.0f,  0.0f,  1.0f}, {1.0f, 1.0f}},
-	    {{-0.5f,  0.5f,  0.5f}, { 0.0f,  0.0f,  1.0f}, {0.0f, 1.0f}},
-	    // back face (-Z)
-	    {{ 0.5f, -0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, {0.0f, 0.0f}},
-	    {{-0.5f, -0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, {1.0f, 0.0f}},
-	    {{-0.5f,  0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, {1.0f, 1.0f}},
-	    {{ 0.5f, -0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, {0.0f, 0.0f}},
-	    {{-0.5f,  0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, {1.0f, 1.0f}},
-	    {{ 0.5f,  0.5f, -0.5f}, { 0.0f,  0.0f, -1.0f}, {0.0f, 1.0f}},
-	    // right face (+X)
-	    {{ 0.5f, -0.5f,  0.5f}, { 1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}},
-	    {{ 0.5f, -0.5f, -0.5f}, { 1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}},
-	    {{ 0.5f,  0.5f, -0.5f}, { 1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}},
-	    {{ 0.5f, -0.5f,  0.5f}, { 1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}},
-	    {{ 0.5f,  0.5f, -0.5f}, { 1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}},
-	    {{ 0.5f,  0.5f,  0.5f}, { 1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}},
-	    // left face (-X)
-	    {{-0.5f, -0.5f, -0.5f}, {-1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}},
-	    {{-0.5f, -0.5f,  0.5f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 0.0f}},
-	    {{-0.5f,  0.5f,  0.5f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}},
-	    {{-0.5f, -0.5f, -0.5f}, {-1.0f,  0.0f,  0.0f}, {0.0f, 0.0f}},
-	    {{-0.5f,  0.5f,  0.5f}, {-1.0f,  0.0f,  0.0f}, {1.0f, 1.0f}},
-	    {{-0.5f,  0.5f, -0.5f}, {-1.0f,  0.0f,  0.0f}, {0.0f, 1.0f}},
-	    // top face (+Y)
-	    {{-0.5f,  0.5f,  0.5f}, { 0.0f,  1.0f,  0.0f}, {0.0f, 0.0f}},
-	    {{ 0.5f,  0.5f,  0.5f}, { 0.0f,  1.0f,  0.0f}, {1.0f, 0.0f}},
-	    {{ 0.5f,  0.5f, -0.5f}, { 0.0f,  1.0f,  0.0f}, {1.0f, 1.0f}},
-	    {{-0.5f,  0.5f,  0.5f}, { 0.0f,  1.0f,  0.0f}, {0.0f, 0.0f}},
-	    {{ 0.5f,  0.5f, -0.5f}, { 0.0f,  1.0f,  0.0f}, {1.0f, 1.0f}},
-	    {{-0.5f,  0.5f, -0.5f}, { 0.0f,  1.0f,  0.0f}, {0.0f, 1.0f}},
-	    // bottom face (-Y)
-	    {{-0.5f, -0.5f, -0.5f}, { 0.0f, -1.0f,  0.0f}, {0.0f, 0.0f}},
-	    {{ 0.5f, -0.5f, -0.5f}, { 0.0f, -1.0f,  0.0f}, {1.0f, 0.0f}},
-	    {{ 0.5f, -0.5f,  0.5f}, { 0.0f, -1.0f,  0.0f}, {1.0f, 1.0f}},
-	    {{-0.5f, -0.5f, -0.5f}, { 0.0f, -1.0f,  0.0f}, {0.0f, 0.0f}},
-	    {{ 0.5f, -0.5f,  0.5f}, { 0.0f, -1.0f,  0.0f}, {1.0f, 1.0f}},
-	    {{-0.5f, -0.5f,  0.5f}, { 0.0f, -1.0f,  0.0f}, {0.0f, 1.0f}},
-	};
-	// clang-format on
-
-	std::vector<uint16_t> indices(vertices.size());
-	std::iota(indices.begin(), indices.end(), 0);
-
-	model = std::make_unique<Model>(device, vertices, indices);
+	model = std::make_unique<Model>(device, MODEL_PATH);
 }
 
 void FirstApp::loadTexture()
 {
-	texture = std::make_unique<Texture>(device, "textures/texture.jpg");
+	texture = std::make_unique<Texture>(device, TEXTURE_PATH);
 }
 
 void FirstApp::createDescriptorSetLayout()
@@ -334,8 +284,11 @@ void FirstApp::updateUniformBuffer(uint32_t frameIndex)
 	                            swapChain->extentAspectRatio(),
 	                            0.1f,
 	                            10.0f);
-	// Invert Y coordinate for Vulkan's coordinate system
+	// Deliberately NOT applying the Vulkan Y-flip here, clip.y is already
+	// correctly oriented because it's dominated by world Z (glTF's Z passes
+	// straight through). Enabling this double-flips and renders upside down.
 	ubo.proj[1][1] *= -1;
+
 	ubo.viewPos = glm::vec4(camera.getPosition(), 1.0f);
 
 	ubo.light.direction = glm::vec4(1.0f, 0.3f, -1.0f, 0.0f);
@@ -424,9 +377,11 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 
 	// push constants for model transformation
 	PushConstantObject push{};
-	push.model = glm::rotate(glm::mat4(1.0f),
-	                         time * glm::radians(90.0f),
-	                         glm::vec3(0.0f, 0.0f, 1.0f));
+	push.model = glm::rotate(
+	    glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	push.model *= glm::rotate(glm::mat4(1.0f),
+	                          glm::radians(time * 90.0f),
+	                          glm::vec3(0.0f, 1.0f, 0.0f));
 	commandBuffer.pushConstants<PushConstantObject>(
 	    *pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, push);
 
