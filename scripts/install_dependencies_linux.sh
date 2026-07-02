@@ -28,9 +28,6 @@ case $PACKAGE_MANAGER in
         echo "Installing GLFW..."
         sudo apt-get install -y libglfw3-dev
 
-        echo "Installing GLM..."
-        sudo apt-get install -y libglm-dev
-
         echo "Installing X Window System dependencies..."
         sudo apt-get install -y libxxf86vm-dev libxi-dev
 
@@ -44,9 +41,6 @@ case $PACKAGE_MANAGER in
 
         echo "Installing GLFW..."
         sudo dnf install -y glfw-devel
-
-        echo "Installing GLM..."
-        sudo dnf install -y glm-devel
 
         echo "Installing X Window System dependencies..."
         sudo dnf install -y libXxf86vm-devel libXi-devel
@@ -62,9 +56,6 @@ case $PACKAGE_MANAGER in
         echo "Installing GLFW..."
         sudo pacman -S --needed glfw-x11 || sudo pacman -S --needed glfw-wayland
 
-        echo "Installing GLM..."
-        sudo pacman -S --needed glm
-
         echo "Installing clang compiler..."
         sudo pacman -S --needed clang
         ;;
@@ -74,7 +65,6 @@ case $PACKAGE_MANAGER in
         echo "- cmake"
         echo "- ninja-build"
         echo "- libglfw3-dev or equivalent"
-        echo "- libglm-dev or equivalent"
         echo "- libxxf86vm-dev and libxi-dev or equivalent"
         echo "- clang compiler"
         exit 1

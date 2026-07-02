@@ -10,7 +10,7 @@ echo "Installing build tools..."
 brew install cmake ninja
 
 echo "Installing graphics and math libraries..."
-brew install glfw glm
+brew install glfw
 
 echo "Setting up compiler tools..."
 xcode-select --install 2>/dev/null || echo "Compiler tools already present."
