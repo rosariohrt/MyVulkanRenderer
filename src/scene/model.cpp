@@ -8,9 +8,15 @@
 #include <iostream>
 
 // libs
+// tiny_gltf.h includes stb headers unqualified, which doesn't resolve since
+// stb/ isn't on its own include path. Include them ourselves instead.
+#define TINYGLTF_NO_INCLUDE_STB_IMAGE
+#define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <tiny_gltf.h>
+#include <stb/stb_image.h>
+#include <stb/stb_image_write.h>
+#include <tinygltf/tiny_gltf.h>
 
 namespace mvr
 {
