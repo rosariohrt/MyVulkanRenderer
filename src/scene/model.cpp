@@ -105,17 +105,14 @@ void Model::loadGltfModel(std::vector<Vertex>   &vertices,
 				    &posBuffer
 				         .data[posBufferView.byteOffset +
 				               posAccessor.byteOffset + i * 3 * sizeof(float)]);
-				// This scene uses a Z-up world (see Camera's default worldUp),
-				// while glTF assets are Y-up. Negate Y to align model-space
-				// "up" with the scene's up axis.
-				vertex.pos = glm::vec3{pos[0], -pos[2], pos[1]};
+				vertex.pos = glm::vec3{pos[0], pos[1], pos[2]};
 
 				if (hasNormals) {
 					const float *normal = reinterpret_cast<const float *>(
 					    &normBuffer->data[normBufferView->byteOffset +
 					                      normAccessor->byteOffset +
 					                      i * 3 * sizeof(float)]);
-					vertex.normal = glm::vec3{normal[0], -normal[2], normal[1]};
+					vertex.normal = glm::vec3{normal[0], normal[1], normal[2]};
 				}
 
 				if (hasTexCoords) {

@@ -17,10 +17,9 @@ enum class CameraMovement
 class Camera
 {
   public:
-	// Positioned at `position`, looking toward `target`, with world up `up`.
-	Camera(glm::vec3 position = {0.0f, 0.0f, 0.0f},
-	       glm::vec3 target   = {1.0f, 0.0f, 0.0f},
-	       glm::vec3 up       = {0.0f, 0.0f, 1.0f});
+	// Positioned at `position`. World is Y-up.
+	// Initial orientation faces -Z (yaw = -90, pitch = 0).
+	Camera(glm::vec3 position = {0.0f, 0.0f, 0.0f});
 
 	glm::mat4 getViewMatrix() const;
 
@@ -46,6 +45,9 @@ class Camera
 	}
 
   private:
+	static constexpr float YAW   = -90.0f;
+	static constexpr float PITCH = 0.0f;
+
 	glm::vec3 position;
 	glm::vec3 front;
 	glm::vec3 right;

@@ -284,9 +284,8 @@ void FirstApp::updateUniformBuffer(uint32_t frameIndex)
 	                            swapChain->extentAspectRatio(),
 	                            0.1f,
 	                            10.0f);
-	// Deliberately NOT applying the Vulkan Y-flip here, clip.y is already
-	// correctly oriented because it's dominated by world Z (glTF's Z passes
-	// straight through). Enabling this double-flips and renders upside down.
+	// glm::perspective() targets OpenGL's Y-up clip space; Vulkan's is
+	// Y-down, so flip here. Keep in sync with frontFace in pipeline.
 	ubo.proj[1][1] *= -1;
 
 	ubo.viewPos = glm::vec4(camera.getPosition(), 1.0f);
@@ -380,8 +379,8 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 	push.model = glm::rotate(
 	    glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	push.model *= glm::rotate(glm::mat4(1.0f),
-	                          glm::radians(time * 90.0f),
-	                          glm::vec3(0.0f, 1.0f, 0.0f));
+	                          glm::radians(0.5f * time * -90.0f),
+	                          glm::vec3(0.0f, 0.0f, 1.0f));
 	commandBuffer.pushConstants<PushConstantObject>(
 	    *pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, push);
 
