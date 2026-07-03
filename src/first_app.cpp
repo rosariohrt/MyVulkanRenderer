@@ -290,7 +290,7 @@ void FirstApp::updateUniformBuffer(uint32_t frameIndex)
 
 	ubo.viewPos = glm::vec4(camera.getPosition(), 1.0f);
 
-	ubo.light.direction = glm::vec4(1.0f, 0.3f, -1.0f, 0.0f);
+	ubo.light.direction = glm::vec4(-1.0f, -1.0f, -0.6f, 0.0f);
 	ubo.light.ambient   = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
 	ubo.light.diffuse   = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 	ubo.light.specular  = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
