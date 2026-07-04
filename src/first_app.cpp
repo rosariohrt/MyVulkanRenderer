@@ -376,9 +376,11 @@ void FirstApp::recordCommandBuffer(uint32_t imageIndex)
 
 	// push constants for model transformation
 	PushConstantObject push{};
-	push.model = glm::rotate(glm::mat4(1.0f),
-	                         glm::radians(0.5f * time * -90.0f),
-	                         glm::vec3(0.0f, 1.0f, 0.0f));
+	push.model = glm::mat4(1.0f);
+	// If you don't want the model to rotate, comment out the following line.
+	push.model *= glm::rotate(push.model,
+	                          glm::radians(0.5f * time * -90.0f),
+	                          glm::vec3(0.0f, 1.0f, 0.0f));
 	commandBuffer.pushConstants<PushConstantObject>(
 	    *pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, push);
 
