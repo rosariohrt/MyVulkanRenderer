@@ -3,7 +3,7 @@
 A small real-time renderer built with **Vulkan** and **GLFW**.
 > This project is a work in progress - see the other branches for the latest code.
 
-![Demo](https://github.com/user-attachments/assets/0f145d7e-5b15-4a66-a763-05afca1d2f0f)
+![Demo](https://github.com/user-attachments/assets/85e23880-4d75-4c28-a3ae-0621c3660411)
 
 ## Features
 
@@ -11,13 +11,13 @@ A small real-time renderer built with **Vulkan** and **GLFW**.
 - Dynamic rendering
 - Manual GPU memory management (no VMA)
 - Camera controls (WASD + mouse)
+- glTF Model loading
 - Directional light
 
 ## Future Work
 
 Goal: switch between rasterization and ray tracing at runtime.
 
-- Model loading (glTF)
 - GUI (Dear ImGui)
 - VMA for memory management
 - Ray tracing
@@ -55,6 +55,9 @@ They install depedencies and print instructions for installing the **Vulkan SDK*
 
 ```sh
 ./scripts/install_dependencies_linux.sh        # Make sure to install Vulkan SDK manually
+# or
+./scripts/install_dependencies_macos.sh
+
 mkdir build && cd build
 cmake .. && make
 ./MyVulkanRenderer
@@ -96,4 +99,6 @@ WIP — to be added.
 - [littleVulkanEngine](https://github.com/blurrypiano/littleVulkanEngine)
 - [Vulkan Specification](https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html)
 - [Learn OpenGL](https://learnopengl.com/)
+- [glm](https://github.com/g-truc/glm)
 - [stb](https://github.com/nothings/stb)
+- [tinygltf](https://github.com/syoyo/tinygltf)

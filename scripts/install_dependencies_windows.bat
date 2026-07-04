@@ -23,7 +23,7 @@ if not exist %TEMP%\vcpkg-cache mkdir %TEMP%\vcpkg-cache
 
 :: Install all dependencies at once using vcpkg in classic mode
 echo Installing all dependencies...
-vcpkg install glfw3 glm --triplet=x64-windows
+vcpkg install glfw3 --triplet=x64-windows
 
 :: Remind about Vulkan SDK
 echo.

@@ -5,25 +5,11 @@
 namespace mvr
 {
 
-namespace
-{
-// Derive yaw/pitch (degrees) from a normalized direction in the Z-up
-// convention used by updateCameraVectors().
-float yawFromDirection(glm::vec3 dir)
-{
-	return glm::degrees(glm::atan(dir.y, dir.x));
-}
-float pitchFromDirection(glm::vec3 dir)
-{
-	return glm::degrees(glm::asin(dir.z));
-}
-}        // namespace
-
-Camera::Camera(glm::vec3 position, glm::vec3 target, glm::vec3 up) :
+Camera::Camera(glm::vec3 position) :
     position{position},
-    worldUp{up},
-    yaw{yawFromDirection(glm::normalize(target - position))},
-    pitch{pitchFromDirection(glm::normalize(target - position))},
+    worldUp{0.0f, 1.0f, 0.0f},
+    yaw{YAW},
+    pitch{PITCH},
     movementSpeed{5.0f},
     mouseSensitivity{0.15f},
     scrollSensitivity{1.5f},
@@ -61,9 +47,9 @@ void Camera::processMouseMovement(float xOffset,
                                   float yOffset,
                                   bool  constrainPitch)
 {
-	// Z-up: increasing yaw rotates CCW (seen from above),
-	// so subtract to makeÅ@mouse-right turn right.
-	yaw -= xOffset * mouseSensitivity;
+	// Y-up: increasing yaw rotates front toward +X, so add to make
+	// mouse-right turn right.
+	yaw += xOffset * mouseSensitivity;
 	pitch += yOffset * mouseSensitivity;
 
 	if (constrainPitch) {
@@ -89,8 +75,8 @@ void Camera::updateCameraVectors()
 {
 	front = glm::normalize(glm::vec3{
 	    cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-	    sin(glm::radians(yaw)) * cos(glm::radians(pitch)),
 	    sin(glm::radians(pitch)),
+	    sin(glm::radians(yaw)) * cos(glm::radians(pitch)),
 	});
 	right = glm::normalize(glm::cross(front, worldUp));
 	up    = glm::normalize(glm::cross(right, front));

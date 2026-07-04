@@ -11,7 +11,7 @@ find_package(glfw3 REQUIRED)
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE src third_party/stb)
+target_include_directories(${PROJECT_NAME} PRIVATE src third_party)
 target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan glfw)
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS
@@ -79,11 +79,11 @@ endif ()
 add_custom_target(Shaders DEPENDS ${SPV_OUTPUTS})
 add_dependencies(${PROJECT_NAME} Shaders)
 
-# --- Textures ---
-add_custom_target(Textures
+# --- Assets ---
+add_custom_target(Assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/textures
-        ${CMAKE_BINARY_DIR}/textures
-    COMMENT "Copying textures"
+        ${CMAKE_SOURCE_DIR}/assets
+        ${CMAKE_BINARY_DIR}/assets
+    COMMENT "Copying assets"
 )
-add_dependencies(${PROJECT_NAME} Textures)
+add_dependencies(${PROJECT_NAME} Assets)
