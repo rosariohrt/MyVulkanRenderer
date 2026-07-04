@@ -8,6 +8,8 @@
 #include <iostream>
 
 // libs
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 // tiny_gltf.h includes stb headers unqualified, which doesn't resolve since
 // stb/ isn't on its own include path. Include them ourselves instead.
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
@@ -21,39 +23,61 @@
 namespace mvr
 {
 
-Model::Model(VulkanDevice &device, const std::string &path) : device{device}
+namespace
 {
-	std::vector<Model::Vertex> vertices;
-	std::vector<uint32_t>      indices;
-	loadGltfModel(vertices, indices, path);
+// Local (parent-relative) transform of a glTF node: either an explicit
+// matrix, or composed from TRS (translation * rotation * scale), per spec
+// defaults (identity translation/rotation, unit scale).
+glm::mat4 localNodeTransform(const tinygltf::Node &node)
+{
+	if (node.matrix.size() == 16) {
+		glm::mat4 m;
+		for (int col = 0; col < 4; ++col) {
+			for (int row = 0; row < 4; ++row) {
+				m[col][row] = static_cast<float>(node.matrix[col * 4 + row]);
+			}
+		}
+		return m;
+	}
 
-	createVertexBuffer(vertices);
-	createIndexBuffer(indices);
-	createUniformBuffers();
+	glm::vec3 translation = node.translation.size() == 3 ?
+	                            glm::vec3{node.translation[0],
+	                                      node.translation[1],
+	                                      node.translation[2]} :
+	                            glm::vec3{0.0f};
+	// glTF stores quaternions as [x, y, z, w]; glm::quat's constructor
+	// takes (w, x, y, z).
+	glm::quat rotation = node.rotation.size() == 4 ?
+	                         glm::quat{static_cast<float>(node.rotation[3]),
+	                                   static_cast<float>(node.rotation[0]),
+	                                   static_cast<float>(node.rotation[1]),
+	                                   static_cast<float>(node.rotation[2])} :
+	                         glm::quat{1.0f, 0.0f, 0.0f, 0.0f};
+	glm::vec3 scale =
+	    node.scale.size() == 3 ?
+	        glm::vec3{node.scale[0], node.scale[1], node.scale[2]} :
+	        glm::vec3{1.0f};
+
+	return glm::translate(glm::mat4(1.0f), translation) *
+	       glm::mat4_cast(rotation) * glm::scale(glm::mat4(1.0f), scale);
 }
 
-void Model::loadGltfModel(std::vector<Vertex>   &vertices,
-                          std::vector<uint32_t> &indices,
-                          const std::string     &path)
+void processNode(const tinygltf::Model      &model,
+                 int                         nodeIndex,
+                 const glm::mat4            &parentTransform,
+                 std::vector<Model::Vertex> &vertices,
+                 std::vector<uint32_t>      &indices)
 {
-	tinygltf::Model    model;
-	tinygltf::TinyGLTF loader;
-	std::string        err, warn;
+	const tinygltf::Node &node = model.nodes[nodeIndex];
+	// This node's transform in world space (local * all ancestors').
+	glm::mat4 worldTransform = parentTransform * localNodeTransform(node);
 
-	bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, path);
+	if (node.mesh >= 0) {
+		// Correct matrix for transforming normals under non-uniform scale.
+		glm::mat3 normalMatrix =
+		    glm::transpose(glm::inverse(glm::mat3(worldTransform)));
 
-	if (!warn.empty()) {
-		std::cout << "glTF warning: " << warn << std::endl;
-	}
-	if (!err.empty()) {
-		std::cout << "glTF error: " << err << std::endl;
-	}
-	if (!ret) {
-		throw std::runtime_error("Failed to load glTF model: " + path);
-	}
-
-	// Process all meshes in the model
-	for (const auto &mesh : model.meshes) {
+		const tinygltf::Mesh &mesh = model.meshes[node.mesh];
 		for (const auto &primitive : mesh.primitives) {
 			// Get indices
 			const tinygltf::Accessor &indexAccessor =
@@ -105,20 +129,23 @@ void Model::loadGltfModel(std::vector<Vertex>   &vertices,
 
 			// process all vertices
 			for (size_t i = 0; i < posAccessor.count; ++i) {
-				Vertex vertex{};
+				Model::Vertex vertex{};
 
 				const float *pos = reinterpret_cast<const float *>(
 				    &posBuffer
 				         .data[posBufferView.byteOffset +
 				               posAccessor.byteOffset + i * 3 * sizeof(float)]);
-				vertex.pos = glm::vec3{pos[0], pos[1], pos[2]};
+				vertex.pos = glm::vec3(worldTransform *
+				                       glm::vec4(pos[0], pos[1], pos[2], 1.0f));
 
 				if (hasNormals) {
 					const float *normal = reinterpret_cast<const float *>(
 					    &normBuffer->data[normBufferView->byteOffset +
 					                      normAccessor->byteOffset +
 					                      i * 3 * sizeof(float)]);
-					vertex.normal = glm::vec3{normal[0], normal[1], normal[2]};
+					vertex.normal = glm::normalize(
+					    normalMatrix *
+					    glm::vec3{normal[0], normal[1], normal[2]});
 				}
 
 				if (hasTexCoords) {
@@ -166,6 +193,49 @@ void Model::loadGltfModel(std::vector<Vertex>   &vertices,
 				indices.push_back(baseVertex + index);
 			}
 		}
+	}
+
+	for (int child : node.children) {
+		processNode(model, child, worldTransform, vertices, indices);
+	}
+}
+}        // namespace
+
+Model::Model(VulkanDevice &device, const std::string &path) : device{device}
+{
+	std::vector<Model::Vertex> vertices;
+	std::vector<uint32_t>      indices;
+	loadGltfModel(vertices, indices, path);
+
+	createVertexBuffer(vertices);
+	createIndexBuffer(indices);
+	createUniformBuffers();
+}
+
+void Model::loadGltfModel(std::vector<Vertex>   &vertices,
+                          std::vector<uint32_t> &indices,
+                          const std::string     &path)
+{
+	tinygltf::Model    model;
+	tinygltf::TinyGLTF loader;
+	std::string        err, warn;
+
+	bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, path);
+
+	if (!warn.empty()) {
+		std::cout << "glTF warning: " << warn << std::endl;
+	}
+	if (!err.empty()) {
+		std::cout << "glTF error: " << err << std::endl;
+	}
+	if (!ret) {
+		throw std::runtime_error("Failed to load glTF model: " + path);
+	}
+
+	int sceneIndex = model.defaultScene >= 0 ? model.defaultScene : 0;
+	const tinygltf::Scene &scene = model.scenes[sceneIndex];
+	for (int rootNode : scene.nodes) {
+		processNode(model, rootNode, glm::mat4(1.0f), vertices, indices);
 	}
 }
 
