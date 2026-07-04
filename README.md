@@ -3,7 +3,8 @@
 A small real-time renderer built with **Vulkan** and **GLFW**.
 > This project is a work in progress - see the other branches for the latest code.
 
-![Demo](https://github.com/user-attachments/assets/85e23880-4d75-4c28-a3ae-0621c3660411)
+**DEMO:**\
+<img width="300" height="236.25" alt="Image" src="https://github.com/user-attachments/assets/c2f235dd-781f-453e-814b-56e03ca86b5c" />
 
 ## Features
 
