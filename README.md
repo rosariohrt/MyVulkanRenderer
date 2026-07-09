@@ -12,6 +12,7 @@ A small real-time renderer built with **Vulkan** and **GLFW**.
 - Dynamic rendering
 - Manual GPU memory management (no VMA)
 - Camera controls (WASD + mouse)
+- GUI (Dear ImGui)
 - glTF Model loading
 - Directional light
 
@@ -19,7 +20,6 @@ A small real-time renderer built with **Vulkan** and **GLFW**.
 
 Goal: switch between rasterization and ray tracing at runtime.
 
-- GUI (Dear ImGui)
 - VMA for memory management
 - Ray tracing
 - Other funny stuff
@@ -103,3 +103,4 @@ WIP — to be added.
 - [glm](https://github.com/g-truc/glm)
 - [stb](https://github.com/nothings/stb)
 - [tinygltf](https://github.com/syoyo/tinygltf)
+- [Dear ImGui](https://github.com/ocornut/imgui)
