@@ -10,7 +10,16 @@ find_package(glfw3 REQUIRED)
 
 file(GLOB_RECURSE SOURCES src/*.cpp)
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+# ImGui files
+set(IMGUI_SOURCES
+    third_party/imgui/imgui.cpp
+    third_party/imgui/imgui_draw.cpp
+    third_party/imgui/imgui_widgets.cpp
+    third_party/imgui/imgui_tables.cpp
+    third_party/imgui/imgui_demo.cpp
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE src third_party)
 target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan glfw)
 target_compile_definitions(${PROJECT_NAME} PRIVATE
