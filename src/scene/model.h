@@ -57,6 +57,7 @@ class Model
 	};
 
 	Model(VulkanDevice &device, const std::string &path);
+
 	Model(const Model &)            = delete;
 	Model &operator=(const Model &) = delete;
 
