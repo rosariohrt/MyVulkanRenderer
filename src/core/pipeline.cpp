@@ -20,9 +20,6 @@ Pipeline::Pipeline(VulkanDevice             &device,
 	createGraphicsPipeline(vertFilePath, fragFilePath, configInfo);
 }
 
-Pipeline::~Pipeline()
-{}
-
 void Pipeline::bind(const vk::raii::CommandBuffer &commandBuffer)
 {
 	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics,

@@ -33,7 +33,6 @@ class Pipeline
 	         const std::string        &vertFilePath,
 	         const std::string        &fragFilePath,
 	         const PipelineConfigInfo &configInfo);
-	~Pipeline();
 
 	Pipeline(const Pipeline &)            = delete;
 	Pipeline &operator=(const Pipeline &) = delete;

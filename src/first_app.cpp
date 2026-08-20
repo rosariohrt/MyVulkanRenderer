@@ -71,9 +71,6 @@ FirstApp::FirstApp()
 	createCommandBuffers();
 }
 
-FirstApp::~FirstApp()
-{}
-
 void FirstApp::run()
 {
 	auto lastTime = std::chrono::high_resolution_clock::now();

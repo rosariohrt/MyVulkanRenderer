@@ -25,7 +25,6 @@ class FirstApp
 	uint32_t                  frameIndex = 0;
 
 	FirstApp();
-	~FirstApp();
 
 	FirstApp(const FirstApp &)            = delete;
 	FirstApp &operator=(const FirstApp &) = delete;
