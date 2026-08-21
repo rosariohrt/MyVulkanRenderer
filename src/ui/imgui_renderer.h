@@ -32,7 +32,7 @@ class ImGuiRenderer
 
 	ImGuiStyle vulkanStyle;
 
-	vk::raii::Sampler      sampler            = nullptr;
+	vk::raii::Sampler      fontSampler        = nullptr;
 	vk::raii::Buffer       vertexBuffer       = nullptr;
 	vk::raii::DeviceMemory vertexBufferMemory = nullptr;
 	uint32_t               vertexCount        = 0;
@@ -55,6 +55,7 @@ class ImGuiRenderer
 
 	void createBuffers();
 	void createImGuiContext(vk::Extent2D extent);
+	void createTextureSampler();
 };
 
 }        // namespace mvr

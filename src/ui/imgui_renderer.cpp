@@ -11,6 +11,7 @@ ImGuiRenderer::ImGuiRenderer(VulkanDevice &device, vk::Extent2D extent) :
 {
 	createBuffers();
 	createImGuiContext(extent);
+	createTextureSampler();
 }
 
 void ImGuiRenderer::setStyle(uint32_t index)
@@ -80,6 +81,20 @@ void ImGuiRenderer::createImGuiContext(vk::Extent2D extent)
 
 	// Apply default style
 	setStyle(0);
+}
+
+void ImGuiRenderer::createTextureSampler()
+{
+	vk::SamplerCreateInfo samplerInfo = {
+	    .magFilter    = vk::Filter::eLinear,
+	    .minFilter    = vk::Filter::eLinear,
+	    .mipmapMode   = vk::SamplerMipmapMode::eLinear,
+	    .addressModeU = vk::SamplerAddressMode::eClampToEdge,
+	    .addressModeV = vk::SamplerAddressMode::eClampToEdge,
+	    .addressModeW = vk::SamplerAddressMode::eClampToEdge,
+	    .borderColor  = vk::BorderColor::eFloatOpaqueWhite,
+	};
+	fontSampler = vk::raii::Sampler(device.device(), samplerInfo);
 }
 
 }        // namespace mvr
