@@ -6,26 +6,54 @@
 namespace mvr
 {
 
-ImGuiRenderer::ImGuiRenderer(VulkanDevice &device) : device{device}
+ImGuiRenderer::ImGuiRenderer(VulkanDevice &device, vk::Extent2D extent) :
+    device{device}
+{
+	createBuffers();
+	createImGuiContext(extent);
+}
+
+void ImGuiRenderer::setStyle(uint32_t index)
+{
+	ImGuiStyle &style = ImGui::GetStyle();
+
+	switch (index) {
+		case 0:
+			// Custom Vulkan style
+			style = vulkanStyle;
+			break;
+		case 1:
+			// Classic Style
+			ImGui::StyleColorsClassic();
+			break;
+		case 2:
+			// Dark style
+			ImGui::StyleColorsDark();
+			break;
+		case 3:
+			// Light style
+			ImGui::StyleColorsLight();
+			break;
+	}
+}
+
+void ImGuiRenderer::createBuffers()
 {
 	std::tie(vertexBuffer, vertexBufferMemory) =
 	    device.createBuffer(1,
 	                        vk::BufferUsageFlagBits::eVertexBuffer,
 	                        vk::MemoryPropertyFlagBits::eHostVisible |
 	                            vk::MemoryPropertyFlagBits::eHostCoherent);
+
 	std::tie(indexBuffer, indexBufferMemory) =
 	    device.createBuffer(1,
 	                        vk::BufferUsageFlagBits::eIndexBuffer,
 	                        vk::MemoryPropertyFlagBits::eHostVisible |
 	                            vk::MemoryPropertyFlagBits::eHostCoherent);
-
-	renderingInfo.colorAttachmentCount    = 1;
-	renderingInfo.pColorAttachmentFormats = &colorFormat;
 }
 
-void ImGuiRenderer::init(vk::Extent2D extent)
+void ImGuiRenderer::createImGuiContext(vk::Extent2D extent)
 {
-	// Initialize ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 
@@ -52,30 +80,6 @@ void ImGuiRenderer::init(vk::Extent2D extent)
 
 	// Apply default style
 	setStyle(0);
-}
-
-void ImGuiRenderer::setStyle(uint32_t index)
-{
-	ImGuiStyle &style = ImGui::GetStyle();
-
-	switch (index) {
-		case 0:
-			// Custom Vulkan style
-			style = vulkanStyle;
-			break;
-		case 1:
-			// Classic Style
-			ImGui::StyleColorsClassic();
-			break;
-		case 2:
-			// Dark style
-			ImGui::StyleColorsDark();
-			break;
-		case 3:
-			// Light style
-			ImGui::StyleColorsLight();
-			break;
-	}
 }
 
 }        // namespace mvr

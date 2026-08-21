@@ -15,12 +15,11 @@ namespace mvr
 class ImGuiRenderer
 {
   public:
-	ImGuiRenderer(VulkanDevice &device);
+	ImGuiRenderer(VulkanDevice &device, vk::Extent2D extent);
 
 	ImGuiRenderer(const ImGuiRenderer &)            = delete;
 	ImGuiRenderer &operator=(const ImGuiRenderer &) = delete;
 
-	void init(vk::Extent2D extent);
 	void setStyle(uint32_t index);
 
   private:
@@ -53,6 +52,9 @@ class ImGuiRenderer
 
 	vk::PipelineRenderingCreateInfo renderingInfo{};
 	vk::Format                      colorFormat = vk::Format::eB8G8R8A8Unorm;
+
+	void createBuffers();
+	void createImGuiContext(vk::Extent2D extent);
 };
 
 }        // namespace mvr
