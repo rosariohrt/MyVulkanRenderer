@@ -20,6 +20,9 @@ class ImGuiRenderer
 	ImGuiRenderer(const ImGuiRenderer &)            = delete;
 	ImGuiRenderer &operator=(const ImGuiRenderer &) = delete;
 
+	void init(vk::Extent2D extent);
+	void setStyle(uint32_t index);
+
   private:
 	struct PushConstBlock {
 		glm::vec2 scale;
