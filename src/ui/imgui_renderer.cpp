@@ -12,6 +12,9 @@ ImGuiRenderer::ImGuiRenderer(VulkanDevice &device, vk::Extent2D extent) :
 	createBuffers();
 	createImGuiContext(extent);
 	createTextureSampler();
+	createDescriptorSetLayout();
+	createDescriptorPool();
+	createDescriptorSet();
 }
 
 void ImGuiRenderer::setStyle(uint32_t index)
@@ -95,6 +98,65 @@ void ImGuiRenderer::createTextureSampler()
 	    .borderColor  = vk::BorderColor::eFloatOpaqueWhite,
 	};
 	fontSampler = vk::raii::Sampler(device.device(), samplerInfo);
+}
+
+void ImGuiRenderer::createDescriptorSetLayout()
+{
+	vk::DescriptorSetLayoutBinding binding = {
+	    .binding         = 0,
+	    .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+	    .descriptorCount = 1,
+	    .stageFlags      = vk::ShaderStageFlagBits::eFragment,
+	};
+
+	vk::DescriptorSetLayoutCreateInfo layoutInfo = {
+	    .bindingCount = 1,
+	    .pBindings    = &binding,
+	};
+	descriptorSetLayout =
+	    vk::raii::DescriptorSetLayout(device.device(), layoutInfo);
+}
+
+void ImGuiRenderer::createDescriptorPool()
+{
+	vk::DescriptorPoolSize poolSize = {
+	    .type            = vk::DescriptorType::eCombinedImageSampler,
+	    .descriptorCount = 1,
+	};
+
+	vk::DescriptorPoolCreateInfo poolInfo = {
+	    .flags         = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+	    .maxSets       = 2,
+	    .poolSizeCount = 1,
+	    .pPoolSizes    = &poolSize,
+	};
+	descriptorPool = vk::raii::DescriptorPool(device.device(), poolInfo);
+}
+
+void ImGuiRenderer::createDescriptorSet()
+{
+	vk::DescriptorSetAllocateInfo allocInfo = {
+	    .descriptorPool     = *descriptorPool,
+	    .descriptorSetCount = 1,
+	    .pSetLayouts        = &*descriptorSetLayout,
+	};
+	descriptorSet =
+	    std::move(device.device().allocateDescriptorSets(allocInfo).front());
+
+	vk::DescriptorImageInfo imageInfo = {
+	    .sampler     = fontSampler,
+	    .imageView   = fontImageView,
+	    .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal,
+	};
+
+	vk::WriteDescriptorSet descriptorWrite = {
+	    .dstSet          = *descriptorSet,
+	    .dstBinding      = 0,
+	    .descriptorCount = 1,
+	    .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+	    .pImageInfo      = &imageInfo,
+	};
+	device.device().updateDescriptorSets(descriptorWrite, {});
 }
 
 }        // namespace mvr

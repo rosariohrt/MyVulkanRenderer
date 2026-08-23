@@ -43,12 +43,12 @@ class ImGuiRenderer
 	vk::raii::Image        fontImage          = nullptr;
 	vk::raii::ImageView    fontImageView      = nullptr;
 
+	vk::raii::DescriptorSetLayout descriptorSetLayout = nullptr;
+	vk::raii::DescriptorPool      descriptorPool      = nullptr;
+	vk::raii::DescriptorSet       descriptorSet       = nullptr;
 	vk::raii::PipelineCache       pipelineCache       = nullptr;
 	vk::raii::PipelineLayout      pipelineLayout      = nullptr;
 	vk::raii::Pipeline            pipeline            = nullptr;
-	vk::raii::DescriptorPool      descriptorPool      = nullptr;
-	vk::raii::DescriptorSetLayout descriptorSetLayout = nullptr;
-	vk::raii::DescriptorSet       descriptorSet       = nullptr;
 
 	vk::PipelineRenderingCreateInfo renderingInfo{};
 	vk::Format                      colorFormat = vk::Format::eB8G8R8A8Unorm;
@@ -56,6 +56,9 @@ class ImGuiRenderer
 	void createBuffers();
 	void createImGuiContext(vk::Extent2D extent);
 	void createTextureSampler();
+	void createDescriptorSetLayout();
+	void createDescriptorPool();
+	void createDescriptorSet();
 };
 
 }        // namespace mvr
